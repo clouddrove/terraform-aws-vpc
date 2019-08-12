@@ -1,78 +1,101 @@
+#Module      : LABEL
+#Description : Terraform label module variables.
+variable "name" {
+  type        = string
+  default     = ""
+  description = "Name  (e.g. `app` or `cluster`)."
+}
+
 variable "application" {
-  type        = "string"
-  description = "Application (e.g. `cd` or `clouddrove`)"
+  type        = string
+  default     = ""
+  description = "Application (e.g. `cd` or `clouddrove`)."
 }
 
 variable "environment" {
-  type        = "string"
-  description = "Environment (e.g. `prod`, `dev`, `staging`)"
+  type        = string
+  default     = ""
+  description = "Environment (e.g. `prod`, `dev`, `staging`)."
 }
 
-variable "name" {
-  description = "Name  (e.g. `app` or `cluster`)"
-  type        = "string"
-}
-
-variable "delimiter" {
-  type        = "string"
-  default     = "-"
-  description = "Delimiter to be used between `namespace`, `stage`, `name` and `attributes`"
+variable "label_order" {
+  type        = list
+  default     = []
+  description = "Label order, e.g. `name`,`application`."
 }
 
 variable "attributes" {
-  type        = "list"
+  type        = list
   default     = []
-  description = "Additional attributes (e.g. `1`)"
+  description = "Additional attributes (e.g. `1`)."
 }
 
 variable "tags" {
-  type        = "map"
+  type        = map
   default     = {}
-  description = "Additional tags (e.g. map(`BusinessUnit`,`XYZ`)"
+  description = "Additional tags (e.g. map(`BusinessUnit`,`XYZ`)."
+}
+
+#Module      : VPC
+#Description : Terraform VPC module variables.
+variable "vpc_enabled" {
+  type        = bool
+  default     = true
+  description = "Flag to control the vpc creation."
 }
 
 variable "cidr_block" {
-  type        = "string"
-  description = "CIDR for the VPC"
+  type        = string
   default     = ""
+  description = "CIDR for the VPC."
 }
 
 variable "instance_tenancy" {
-  description = "A tenancy option for instances launched into the VPC"
+  type        = string
   default     = "default"
+  description = "A tenancy option for instances launched into the VPC."
 }
 
 variable "enable_dns_hostnames" {
-  description = "A boolean flag to enable/disable DNS hostnames in the VPC"
-  default     = "true"
+  type        = bool
+  default     = true
+  description = "A boolean flag to enable/disable DNS hostnames in the VPC."
 }
 
 variable "enable_dns_support" {
-  description = "A boolean flag to enable/disable DNS support in the VPC"
-  default     = "true"
+  type        = bool
+  default     = true
+  description = "A boolean flag to enable/disable DNS support in the VPC."
 }
 
 variable "enable_classiclink" {
-  description = "A boolean flag to enable/disable ClassicLink for the VPC"
-  default     = "false"
+  type        = bool
+  default     = false
+  description = "A boolean flag to enable/disable ClassicLink for the VPC."
 }
 
 variable "enable_classiclink_dns_support" {
-  description = "A boolean flag to enable/disable ClassicLink DNS Support for the VPC"
-  default     = "false"
+  type        = bool
+  default     = false
+  description = "A boolean flag to enable/disable ClassicLink DNS Support for the VPC."
+}
+
+#Module      : FLOW LOG
+#Description : Terraform flow log module variables.
+variable "enable_flow_log" {
+  type        = bool
+  default     = false
+  description = "Enable vpc_flow_log logs."
 }
 
 variable "s3_bucket_arn" {
-  description = "S3 ARN for vpc logs"
+  type        = string
   default     = ""
+  description = "S3 ARN for vpc logs."
 }
 
 variable "traffic_type" {
-  description = "Type of traffic to capture. Valid values: ACCEPT,REJECT, ALL"
+  type        = string
   default     = "ALL"
-}
-
-variable "vpc_flow_log" {
-  description = "Enable vpc_flow_log logs"
-  default     = "false"
+  description = "Type of traffic to capture. Valid values: ACCEPT,REJECT, ALL."
 }

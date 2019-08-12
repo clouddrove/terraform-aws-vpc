@@ -1,9 +1,13 @@
-- repo: git://github.com/anmolnagpal/git-hooks-terraform
-  rev: v1.0.0 # Use the ref you want to point at
-  hooks:
-  - id: fmt
-  - id: validate
-- repo: git://github.com/pre-commit/pre-commit-hooks
-  rev: v2.1.0 # Use the ref you want to point at
-  hooks:
-    - id: check-merge-conflict
+repos:
+  - repo: git://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.12.0
+    hooks:
+    - id: terraform_fmt
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.0.0
+    hooks:
+      - id: check-merge-conflict
+      - id: trailing-whitespace
+      - id: check-yaml
+      - id: check-added-large-files
