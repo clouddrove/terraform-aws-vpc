@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 module "s3_bucket" {
-  source = "git::https://github.com/clouddrove/terraform-aws-s3.git"
+  source = "git::https://github.com/clouddrove/terraform-aws-s3.git?ref=tags/0.12.1"
 
   name        = "secure-bucket"
   application = "clouddrove"
@@ -17,7 +17,7 @@ module "s3_bucket" {
 }
 
 module "vpc" {
-  source = "git::https://github.com/clouddrove/terraform-aws-vpc.git"
+  source = "git::https://github.com/clouddrove/terraform-aws-vpc.git?ref=tags/0.12.1"
 
   name        = "vpc"
   application = "clouddrove"
