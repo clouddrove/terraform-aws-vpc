@@ -70,7 +70,7 @@ This module has a few dependencies:
 Here is an example of how you can use this module in your inventory structure:
   ```hcl
   module "vpc" {
-      source      = "git::https://github.com/clouddrove/terraform-aws-vpc.git"
+      source      = "git::https://github.com/clouddrove/terraform-aws-vpc.git?ref=tags/0.12.1"
       name        = "vpc"
       application = "clouddrove"
       environment = "test"
