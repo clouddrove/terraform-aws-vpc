@@ -43,7 +43,12 @@ resource "aws_internet_gateway" "default" {
   count = var.vpc_enabled == true ? 1 : 0
 
   vpc_id = element(aws_vpc.default.*.id, count.index)
-  tags   = module.labels.tags
+  tags = merge(
+  module.labels.tags,
+  {
+    "Name" = format("%s-igw", module.labels.id)
+  }
+  )
 }
 
 #Module      : FLOW LOG
