@@ -44,10 +44,10 @@ resource "aws_internet_gateway" "default" {
 
   vpc_id = element(aws_vpc.default.*.id, count.index)
   tags = merge(
-  module.labels.tags,
-  {
-    "Name" = format("%s-igw", module.labels.id)
-  }
+    module.labels.tags,
+    {
+      "Name" = format("%s-igw", module.labels.id)
+    }
   )
 }
 
