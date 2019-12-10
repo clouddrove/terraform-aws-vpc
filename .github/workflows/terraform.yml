@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout'
-        uses: actions/checkout@master
+        uses: actions/checkout@1.0.0
       - name: 'Terraform Format'
         uses: clouddrove/github-actions@master
         with:
@@ -16,7 +16,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN_ID }}
       - name: 'Terraform Init'
-        uses: clouddrove/github-actions@master
+        uses: clouddrove/github-actions@1.0.0
         with:
           tf_actions_version: 0.12.13
           actions_subcommand: 'init'
@@ -32,7 +32,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN_ID }}
       - name: 'Terratest'
-        uses: clouddrove/github-actions@master
+        uses: clouddrove/github-actions@1.0.0
         with:
           tf_actions_version: 0.12.13
           actions_subcommand: 'terratest'
