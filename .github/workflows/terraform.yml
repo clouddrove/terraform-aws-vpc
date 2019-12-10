@@ -9,14 +9,14 @@ jobs:
       - name: 'Checkout'
         uses: actions/checkout@master
       - name: 'Terraform Format'
-        uses: clouddrove/github-actions@master
+        uses: sohanyadav/terraform-github-actions@master
         with:
           tf_actions_version: 0.12.13
           actions_subcommand: 'fmt'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN_ID }}
       - name: 'Terraform Init'
-        uses: clouddrove/github-actions@master
+        uses: sohanyadav/terraform-github-actions@master
         with:
           tf_actions_version: 0.12.13
           actions_subcommand: 'init'
@@ -24,13 +24,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN_ID }}
       - name: 'Terraform Validate'
-        uses: clouddrove/github-actions@master
+        uses: sohanyadav/terraform-github-actions@master
         with:
           tf_actions_version: 0.12.13
           actions_subcommand: 'validate'
           tf_actions_working_dir: ./_example
       - name: 'Terraform Apply'
-        uses: clouddrove/github-actions@master
+        uses: sohanyadav/terraform-github-actions@master
         with:
           tf_actions_version: 0.12.13
           actions_subcommand: 'apply'
@@ -38,7 +38,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN_ID }}
       - name: 'Terratest'
-        uses: clouddrove/github-actions@master
+        uses: sohanyadav/terraform-github-actions@master
         with:
           tf_actions_version: 0.12.13
           actions_subcommand: 'terratest'
