@@ -24,6 +24,8 @@ jobs:
       - name: 'Terraform Plan'
         uses: clouddrove/github-actions@v1.0
         with:
+          tf_actions_comment: true
+          tf_actions_version: 0.12.13
           actions_subcommand: 'plan'
           tf_actions_working_dir: ./_example
         env:
