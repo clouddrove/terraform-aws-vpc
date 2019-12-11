@@ -21,20 +21,20 @@ jobs:
           actions_subcommand: 'init'
           tf_actions_working_dir: ./_example
 
-      - name: 'Terratest'
+      - name: 'Terraform Plan'
         uses: clouddrove/github-actions@v1.0
         with:
-          actions_subcommand: 'terratest'
-          tf_actions_working_dir: ./_test
+          actions_subcommand: 'plan'
+          tf_actions_working_dir: ./_example
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: 'Terraform Plan'
+      - name: 'Terratest'
         uses: clouddrove/github-actions@v1.0
         with:
-          actions_subcommand: 'plan'
+          actions_subcommand: 'terratest'
           tf_actions_working_dir: ./_test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
