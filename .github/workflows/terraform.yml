@@ -26,6 +26,9 @@ jobs:
         with:
           actions_subcommand: 'plan'
           tf_actions_working_dir: ./_example
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: 'Terratest'
         uses: clouddrove/github-actions@v1.0
