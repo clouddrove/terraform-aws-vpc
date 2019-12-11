@@ -6,38 +6,43 @@ jobs:
     name: 'Terraform'
     runs-on: ubuntu-latest
     steps:
+
       - name: 'Checkout'
-        uses: actions/checkout@1.0.0
+        uses: actions/checkout@master
+
       - name: 'Terraform Format'
-        uses: clouddrove/github-actions@master
+        uses: clouddrove/github-actions@v1.0
         with:
-          tf_actions_version: 0.12.13
           actions_subcommand: 'fmt'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN_ID }}
+
       - name: 'Terraform Init'
-        uses: clouddrove/github-actions@1.0.0
+        uses: clouddrove/github-actions@v1.0
         with:
-          tf_actions_version: 0.12.13
           actions_subcommand: 'init'
           tf_actions_working_dir: ./_example
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN_ID }}
-      - name: 'Terraform Validate'
-        uses: clouddrove/github-actions@master
+
+      - name: 'Terraform Plan'
+        uses: clouddrove/github-actions@v1.0
         with:
-          tf_actions_version: 0.12.13
-          actions_subcommand: 'validate'
+          actions_subcommand: 'plan'
           tf_actions_working_dir: ./_example
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN_ID }}
+
       - name: 'Terratest'
-        uses: clouddrove/github-actions@1.0.0
+        uses: clouddrove/github-actions@v1.0
         with:
-          tf_actions_version: 0.12.13
           actions_subcommand: 'terratest'
           tf_actions_working_dir: ./_test
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN_ID }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: 'Slack Notification'
+        uses: 8398a7/action-slack@v2
+        with:
+          status: ${{ job.status }}
+          fields: repo,author
+          author_name: 'Clouddrove'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # required
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }} # required
+        if: always()
