@@ -30,7 +30,7 @@ resource "aws_vpc" "default" {
   lifecycle {
     # Ignore tags added by kubernetes
     ignore_changes = [
-      "tags",
+      tags,
       tags["kubernetes.io"],
       tags["SubnetType"],
     ]
