@@ -5,10 +5,10 @@ provider "aws" {
 module "s3_bucket" {
   source = "git::https://github.com/clouddrove/terraform-aws-s3.git?ref=tags/0.12.2"
 
-  name        = "secure-bucket"
+  name        = "log-bucket"
   application = "clouddrove"
   environment = "test"
-  label_order = ["environment", "name", "application"]
+  label_order = ["environment", "name"]
 
   region         = "eu-west-1"
   versioning     = true
