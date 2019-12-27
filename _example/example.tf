@@ -8,7 +8,8 @@ module "s3_bucket" {
   name        = "log-bucket"
   application = "clouddrove"
   environment = "test"
-  label_order = ["environment", "name", "application"]
+  label_order = ["environment", "application", "name"]
+
 
   region         = "eu-west-1"
   versioning     = true
