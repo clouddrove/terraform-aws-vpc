@@ -35,6 +35,7 @@ jobs:
           actions_subcommand: 'terratest'
           tf_actions_working_dir: ./_test
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 'Slack Notification'
         uses: clouddrove/action-slack@v2
