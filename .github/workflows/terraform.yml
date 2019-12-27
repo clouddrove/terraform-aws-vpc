@@ -12,15 +12,22 @@ jobs:
         uses: actions/checkout@master
 
       - name: 'Terraform Format'
-        uses: clouddrove/github-actions@v1.0
+        uses: clouddrove/github-actions@v2.0
         with:
           actions_subcommand: 'fmt'
 
       - name: 'Terraform Init'
-        uses: clouddrove/github-actions@v1.0
+        uses: clouddrove/github-actions@v2.0
         with:
           actions_subcommand: 'init'
           tf_actions_working_dir: ./_example
+
+      - name: Configure AWS Credentials
+        uses: clouddrove/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
 
       - name: 'Terratest'
         uses: clouddrove/github-actions@v1.0
@@ -28,12 +35,9 @@ jobs:
           actions_subcommand: 'terratest'
           tf_actions_working_dir: ./_test
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: 'Slack Notification'
-        uses: 8398a7/action-slack@v2
+        uses: clouddrove/action-slack@v2
         with:
           status: ${{ job.status }}
           fields: repo,author
