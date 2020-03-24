@@ -37,7 +37,7 @@ usage : |-
   Here is an example of how you can use this module in your inventory structure:
     ```hcl
     module "vpc" {
-        source      = "git::https://github.com/clouddrove/terraform-aws-vpc.git?ref=tags/0.12.4"
+        source      = "git::https://github.com/clouddrove/terraform-aws-vpc.git?ref=tags/0.12.5"
         name        = "vpc"
         application = "clouddrove"
         environment = "test"
