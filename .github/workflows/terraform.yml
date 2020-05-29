@@ -29,6 +29,28 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
+      - name: 'Terraform Plan'
+        uses: clouddrove/github-actions@v2.0
+        with:
+          actions_subcommand: 'plan'
+          tf_actions_working_dir: ./_example
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Submit a comment with the plan output to the pull request
+      - name: "Run - Terraform Comment"
+        uses: actions/github-script@0.9.0
+        env:
+          STDOUT: "```${{ steps.plan.outputs.stdout }}```"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: process.env.STDOUT
+            })
+
       - name: 'Terratest'
         uses: clouddrove/github-actions@v2.0
         with:
@@ -47,17 +69,3 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # required
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }} # required
         if: always()
-      # Submit a comment with the plan output to the pull request
-      - name: "Run - Terraform Comment"
-        uses: actions/github-script@0.9.0
-        env:
-          STDOUT: "```${{ steps.plan.outputs.stdout }}```"
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            github.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: process.env.STDOUT
-            })
