@@ -38,7 +38,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: "Run - Terraform Plan"
-        id: plan
         run: terraform plan -input=false -no-color
       # Submit a comment with the plan output to the pull request
       - name: "Run - Terraform Comment"
@@ -73,3 +72,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # required
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }} # required
         if: always()
+b
