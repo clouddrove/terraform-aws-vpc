@@ -81,10 +81,70 @@ Here is an example of how you can use this module in your inventory structure:
     }
   ```
 
+### Updated features
+Here is an example of how you can use Terraform 0.13.0 upgrade features module in your inventory structure:
+#### Module expansion
+  ```hcl
+  variable "bucket_names" {
+   type    = type("string")
+   default = ["prod", "qa", "dev"]
+  }
 
+  module "bucket_deploy" {
+   source = "terraform-aws-modules/s3-bucket/aws"
+   count  = length(var.bucket_names)
 
+   region = var.region
+   bucket = var.bucket_names[count.index]
+  }
 
+  output "bucket-dev" {
+  value = module.bucket_deploy[2].this_s3_bucket_id
+  }
+  ```
+#### Module dependencies
+  ```hcl
+  locals {
+   resources = {
+     wg-prod = "prod-eks"
+     wg-qa   = "qa-eks"
+     wg-dev  = "dev-eks"
+  }
+  }
 
+ module "my-cluster" {
+   source   = "terraform-aws-modules/eks/aws"
+   for_each = local.resources
+
+   cluster_name    = each.value
+   cluster_version = "1.16"
+   vpc_id          = "vpc-1234556abcdef"
+
+   worker_groups = [
+    {
+	  name	      = each.key
+        instance_type = "m4.large"
+        asg_max_size  = 3
+    }
+   ]
+
+   depends_on = [module.bucket_deploy]
+  }
+  ```
+#### Variable validation
+  ```hcl
+  variable "image_id" {
+  type        = string
+  description = "The id of the machine image (AMI) to use for the server."
+
+  validation {
+    # regex(...) fails if it cannot find a match
+    # can(...) returns false if the code it contains produces an error
+    condition     = can(regex("^ami-", var.image_id))
+    error_message = "Must be an AMI id, starting with \"ami-\"."
+  }
+  }
+  ```
 
 ## Inputs
 
