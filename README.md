@@ -87,15 +87,17 @@ Here is an example of how you can use Terraform 0.13.0 upgrade features module i
   ```hcl
   variable "bucket_names" {
    type    = type("string")
-   default = ["prod", "qa", "dev"]
+   default = ["dev", "qa", "prod"]
   }
 
-  module "bucket_deploy" {
-   source = "terraform-aws-modules/s3-bucket/aws"
+  module "deploy_bucket" {
+   source = "git::https://github.com/clouddrove/terraform-aws-s3.git?ref=tags/0.12.7"
    count  = length(var.bucket_names)
 
    region = var.region
    bucket = var.bucket_names[count.index]
+   acl                 = "private"
+   bucket_enabled      = true
   }
 
   output "bucket-dev" {
