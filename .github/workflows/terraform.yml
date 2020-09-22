@@ -12,12 +12,12 @@ jobs:
         uses: actions/checkout@master
 
       - name: 'Terraform Format'
-        uses: clouddrove/github-actions@v2.0
+        uses: clouddrove/github-actions@v3.0
         with:
           actions_subcommand: 'fmt'
 
       - name: 'Terraform Init'
-        uses: clouddrove/github-actions@v2.0
+        uses: clouddrove/github-actions@v3.0
         with:
           actions_subcommand: 'init'
           tf_actions_working_dir: ./_example
@@ -30,7 +30,7 @@ jobs:
           aws-region: us-east-2
 
       - name: 'Terratest'
-        uses: clouddrove/github-actions@v2.0
+        uses: clouddrove/github-actions@v3.0
         with:
           actions_subcommand: 'terratest'
           tf_actions_working_dir: ./_test
