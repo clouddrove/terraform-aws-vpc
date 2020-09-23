@@ -14,7 +14,7 @@ jobs:
       - name: 'Terraform Format'
         uses: clouddrove/github-actions@v3.0
         with:
-          actions_subcommand: 'fmt'
+          actions_subcommand: 'fmt -diff'
 
       - name: 'Terraform Init'
         uses: clouddrove/github-actions@v3.0
