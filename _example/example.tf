@@ -18,7 +18,7 @@ module "s3_bucket" {
 }
 
 module "vpc" {
-  source = "./../"
+  source = "../"
 
   name        = "vpc"
   application = "clouddrove"
