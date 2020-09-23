@@ -2,19 +2,16 @@
 #Description : Terraform label module variables.
 variable "name" {
   type        = string
-  default     = ""
   description = "Name  (e.g. `app` or `cluster`)."
 }
 
 variable "application" {
   type        = string
-  default     = ""
   description = "Application (e.g. `cd` or `clouddrove`)."
 }
 
 variable "environment" {
   type        = string
-  default     = ""
   description = "Environment (e.g. `prod`, `dev`, `staging`)."
 }
 
