@@ -1,7 +1,3 @@
-#Module      : LABEL
-
-#Description : Terraform label module variables.
-
 variable "name" {
   type        = string
   description = "Name  (e.g. `app` or `cluster`)."
