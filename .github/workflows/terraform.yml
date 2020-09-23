@@ -11,11 +11,15 @@ jobs:
       - name: 'Checkout'
         uses: actions/checkout@master
 
-      - name: 'Terraform Format'
-        uses: clouddrove/github-actions@v3.0
+      - name: 'Terraform Format (fmt) Prod Env.'
+        uses: clouddrove/github-actions@master
         with:
-          tf_actions_subcommand: 'fmt -diff'
-          tf_actions_working_dir: ""
+          tf_actions_version: 0.13.0
+          actions_subcommand: 'fmt'
+          tf_actions_working_dir: '.'
+          tf_actions_comment: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 
       - name: 'Terraform Init'
