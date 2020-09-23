@@ -103,7 +103,7 @@ variable "s3_bucket_arn" {
     # regex(...) fails if it cannot find a match
     # can(...) returns false if the code it contains produces an error
     condition     = can(regex("^arn:aws:s3::", var.s3_bucket_arn))
-    error_message = "Must be an AMI id, starting with \"arn:aws:s3::\"."
+    error_message = "Must be an ARN, starting with \"arn:aws:s3::\"."
   }
 }
 
