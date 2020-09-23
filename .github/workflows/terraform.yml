@@ -40,7 +40,7 @@ jobs:
           aws-region: us-east-2
 
       - name: 'Terratest'
-        uses: clouddrove/github-actions@master
+        uses: clouddrove/github-actions@CD-89
         with:
           actions_subcommand: 'terratest'
           tf_actions_working_dir: ./_test
