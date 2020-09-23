@@ -1,15 +1,20 @@
+#Module      : LABEL
+#Description : Terraform label module variables.
 variable "name" {
   type        = string
+  default     = ""
   description = "Name  (e.g. `app` or `cluster`)."
 }
 
 variable "application" {
   type        = string
+  default     = ""
   description = "Application (e.g. `cd` or `clouddrove`)."
 }
 
 variable "environment" {
   type        = string
+  default     = ""
   description = "Environment (e.g. `prod`, `dev`, `staging`)."
 }
 
@@ -98,7 +103,7 @@ variable "s3_bucket_arn" {
     # regex(...) fails if it cannot find a match
     # can(...) returns false if the code it contains produces an error
     condition     = can(regex("^arn:aws:s3::", var.s3_bucket_arn))
-    error_message = "Must be an ARN, starting with \"arn:aws:s3::\"."
+    error_message = "Must be an AMn:aws:s3::", var.s3_bucket_arn)), starting with \"arn:aws:s3::\"."
   }
 }
 
