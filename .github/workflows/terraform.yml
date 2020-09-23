@@ -14,12 +14,14 @@ jobs:
       - name: 'Terraform Format'
         uses: clouddrove/github-actions@v3.0
         with:
-          actions_subcommand: 'fmt -diff'
+          tf_actions_subcommand: 'fmt -diff'
+          tf_actions_working_dir: ""
+
 
       - name: 'Terraform Init'
         uses: clouddrove/github-actions@v3.0
         with:
-          actions_subcommand: 'init'
+          tf_actions_subcommand: 'init'
           tf_actions_working_dir: ./_example
 
       - name: Configure AWS Credentials
@@ -32,7 +34,7 @@ jobs:
       - name: 'Terratest'
         uses: clouddrove/github-actions@v3.0
         with:
-          actions_subcommand: 'terratest'
+          tf_actions_subcommand: 'terratest'
           tf_actions_working_dir: ./_test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
