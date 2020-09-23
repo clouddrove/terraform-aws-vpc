@@ -11,11 +11,11 @@ jobs:
       - name: 'Checkout'
         uses: actions/checkout@master
 
-      - name: 'Terraform Format (fmt) Prod Env.'
+      - name: 'Terraform Format fmt'
         uses: clouddrove/github-actions@master
         with:
           tf_actions_version: 0.13.0
-          actions_subcommand: 'fmt'
+          actions_subcommand: 'fmt -diff'
           tf_actions_working_dir: "./_example"
           tf_actions_comment: true
         env:
@@ -23,10 +23,14 @@ jobs:
 
 
       - name: 'Terraform Init'
-        uses: clouddrove/github-actions@v3.0
+        uses: clouddrove/github-actions@master
         with:
-          tf_actions_subcommand: 'init'
-          tf_actions_working_dir: ./_example
+          tf_actions_version: 0.13.0
+          actions_subcommand: 'init'
+          tf_actions_working_dir: "./_example"
+          tf_actions_comment: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Configure AWS Credentials
         uses: clouddrove/configure-aws-credentials@v1
