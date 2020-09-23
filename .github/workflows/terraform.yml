@@ -42,7 +42,7 @@ jobs:
       - name: 'Terratest'
         uses: clouddrove/github-actions@v3.0
         with:
-          tf_actions_subcommand: 'terratest'
+          terraform_subcommand: 'terratest'
           tf_actions_working_dir: ./_test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
