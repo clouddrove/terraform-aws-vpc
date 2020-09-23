@@ -20,9 +20,9 @@ module "s3_bucket" {
 module "vpc" {
   source = "../"
 
-  name        = "vpc"
-  application = "clouddrove"
-  environment = "test"
+  name        = vpc
+  application = clouddrove
+  environment = test
   label_order = ["environment", "application", "name"]
 
   cidr_block = "10.0.0.0/16"
