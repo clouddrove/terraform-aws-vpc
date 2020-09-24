@@ -72,6 +72,6 @@ jobs:
           fields: repo,author
           author_name: 'Clouddrove'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITOKEN }} # required
-          SLACK_WEBHOOK_URL: ${{ secrets.SLAK }} # required
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # required
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }} # required
         if: always()
