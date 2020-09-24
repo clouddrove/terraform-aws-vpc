@@ -12,7 +12,7 @@ jobs:
         uses: actions/checkout@master
 
       - name: 'Terraform Format fmt'
-        uses: hashicorp/terraform-github-actions
+        uses: hashicorp/terraform-github-actions@master
         with:
           tf_actions_version: 0.13.3
           tf_actions_subcommand: 'fmt'
@@ -48,7 +48,7 @@ jobs:
         run: go test 
       
       - name: 'Terraform Init'
-        uses: hashicorp/terraform-github-actions
+        uses: hashicorp/terraform-github-actions@master
         with:
           tf_actions_version: 0.13.3
           tf_actions_subcommand: 'init'
