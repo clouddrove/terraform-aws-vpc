@@ -58,6 +58,8 @@ jobs:
         working-directory: ./_test
         run: |
           ls -la
+          cd ./
+          ls -la
           go test
 
 #      - name: 'Terratest'
