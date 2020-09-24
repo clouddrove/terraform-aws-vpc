@@ -56,7 +56,9 @@ jobs:
       
       - name: Test
         working-directory: ./_test
-        run: go test
+        run: |
+          ls -la
+          go test
 
 #      - name: 'Terratest'
 #        uses: clouddrove/github-actions@CD-89
