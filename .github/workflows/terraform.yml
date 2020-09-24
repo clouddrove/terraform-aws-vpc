@@ -58,7 +58,7 @@ jobs:
         working-directory: ./_test
         run: |
           ls -la
-          cd ./
+          cd ..
           ls -la
           go test
 
