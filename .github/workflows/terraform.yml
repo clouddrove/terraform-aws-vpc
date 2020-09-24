@@ -12,10 +12,10 @@ jobs:
         uses: actions/checkout@master
 
       - name: 'Terraform Format fmt'
-        uses: clouddrove/github-actions@master
+        uses: hashicorp/terraform-github-actions
         with:
-          tf_actions_version: 0.13.0
-          actions_subcommand: 'fmt'
+          tf_actions_version: 0.13.3
+          tf_actions_subcommand: 'fmt'
           tf_actions_working_dir: "./_example"
           tf_actions_comment: true
         env:
@@ -48,10 +48,10 @@ jobs:
         run: go test 
       
       - name: 'Terraform Init'
-        uses: clouddrove/github-actions@master
+        uses: hashicorp/terraform-github-actions
         with:
           tf_actions_version: 0.13.3
-          actions_subcommand: 'init'
+          tf_actions_subcommand: 'init'
           tf_actions_working_dir: "./_example"
           tf_actions_comment: true
         env:
