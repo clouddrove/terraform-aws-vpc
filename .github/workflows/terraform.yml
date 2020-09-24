@@ -55,7 +55,7 @@ jobs:
           fi
       
       - name: Test
-        working-directory: ./test
+        working-directory: ./_test
         run: go test
 
 #      - name: 'Terratest'
