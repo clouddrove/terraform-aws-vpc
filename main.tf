@@ -7,19 +7,20 @@
 #              for resources. You can use terraform-labels to implement a strict naming
 #              convention.
 module "labels" {
-  source = "git::https://github.com/clouddrove/terraform-labels.git?ref=tags/0.12.0"
+  source = "git::https://github.com/clouddrove/terraform-labels.git?ref=tags/0.13.0"
 
   name        = var.name
   application = var.application
   environment = var.environment
   managedby   = var.managedby
   label_order = var.label_order
+  enabled     = var.vpc_enabled
 }
 
 #Module      : VPC
 #Description : Terraform module to create VPC resource on AWS.
 resource "aws_vpc" "default" {
-  count = var.vpc_enabled == true ? 1 : 0
+  count = var.vpc_enabled ? 1 : 0
 
   cidr_block                       = var.cidr_block
   instance_tenancy                 = var.instance_tenancy
@@ -42,7 +43,7 @@ resource "aws_vpc" "default" {
 #Module      : INTERNET GATEWAY
 #Description : Terraform module which creates Internet Geteway resources on AWS
 resource "aws_internet_gateway" "default" {
-  count = var.vpc_enabled == true ? 1 : 0
+  count = var.vpc_enabled ? 1 : 0
 
   vpc_id = element(aws_vpc.default.*.id, count.index)
   tags = merge(
@@ -57,7 +58,7 @@ resource "aws_internet_gateway" "default" {
 #Description : Provides a VPC/Subnet/ENI Flow Log to capture IP traffic for a
 #              specific network interface, subnet, or VPC. Logs are sent to S3 Bucket.
 resource "aws_flow_log" "vpc_flow_log" {
-  count = var.enable_flow_log == true ? 1 : 0
+  count = var.vpc_enabled && var.enable_flow_log == true ? 1 : 0
 
   log_destination      = var.s3_bucket_arn
   log_destination_type = "s3"

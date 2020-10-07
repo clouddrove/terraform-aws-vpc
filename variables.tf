@@ -99,6 +99,12 @@ variable "s3_bucket_arn" {
   type        = string
   default     = ""
   description = "S3 ARN for vpc logs."
+  validation {
+    # regex(...) fails if it cannot find a match
+    # can(...) returns false if the code it contains produces an error
+    condition     = can(regex("^arn:aws:s3::", var.s3_bucket_arn))
+    error_message = "Must be an ARN starting with \"arn:aws:s3::\"."
+  }
 }
 
 variable "traffic_type" {
