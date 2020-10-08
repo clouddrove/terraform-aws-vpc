@@ -18,7 +18,7 @@ jobs:
           python-version: '3.x'
 
       - name: 'Install test dependencies.'
-        run: pip install  yamllint
+        run: pip install yamllint
 
       - name: Run yamllint.
         run: yamllint ./README.yaml
