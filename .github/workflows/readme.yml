@@ -32,6 +32,10 @@ jobs:
           make packages/install/gomplate
           make readme
 
+    - uses: pre-commit/action@v2.0.0
+        with:
+          extra_args: flake8 --all-files
+
       - name: push to repo back
         run: |
           git config --global user.email "anmol@clouddrove.com"
