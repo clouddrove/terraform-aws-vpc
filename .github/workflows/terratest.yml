@@ -1,14 +1,16 @@
-name: 'Terraform GitHub Actions'
+name: 'Terratest GitHub Actions'
 on:
   pull_request:
-    branches:
+    branches: 
       - master
+    types: [labeled]
 
 jobs:
   terraform:
     name: 'Terraform'
     runs-on: ubuntu-latest
     steps:
+
       - name: 'Checkout'
         uses: actions/checkout@master
 
@@ -19,28 +21,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.TEST_AWS_ACCESS_SECRET_KEY }}
           aws-region: us-east-2
 
-      - name: 'Terraform Format'
+      - name: 'Terratest'
+        if: ${{ github.event.label.name == 'terratest' }}
         uses: 'clouddrove/github-actions@v4.0'
         with:
-          actions_subcommand: 'fmt'
-
-      - name: 'Terraform init'
-        uses: 'clouddrove/github-actions@v4.0'
-        with:
-          actions_subcommand: 'init'
-          tf_actions_working_dir: ./_example
-
-      - name: 'Terraform validate'
-        uses: 'clouddrove/github-actions@v4.0'
-        with:
-          actions_subcommand: 'validate'
-          tf_actions_working_dir: ./_example
-
-      - name: 'Terraform plan'
-        uses: 'clouddrove/github-actions@v4.0'
-        with:
-          actions_subcommand: 'plan'
-          tf_actions_working_dir: ./_example
+          actions_subcommand: 'terratest'
+          tf_actions_working_dir: ./_test
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 'Slack Notification'
         uses: clouddrove/action-slack@v2

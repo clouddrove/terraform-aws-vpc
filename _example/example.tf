@@ -3,7 +3,8 @@ provider "aws" {
 }
 
 module "s3_bucket" {
-  source = "git::https://github.com/clouddrove/terraform-aws-s3.git?ref=tags/0.12.7"
+  source  = "clouddrove/s3/aws"
+  version = "0.13.0"
 
   name        = "log-bucket"
   application = "clouddrove"
