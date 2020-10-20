@@ -1,7 +1,7 @@
 name: 'Terratest GitHub Actions'
 on:
   pull_request:
-    branches: 
+    branches:
       - master
     types: [labeled]
 
@@ -26,7 +26,7 @@ jobs:
         uses: 'clouddrove/github-actions@v4.0'
         with:
           actions_subcommand: 'terratest'
-          tf_actions_working_dir: ./_test
+          tf_actions_working_dir: '_test'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
