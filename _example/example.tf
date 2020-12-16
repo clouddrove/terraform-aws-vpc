@@ -4,13 +4,12 @@ provider "aws" {
 
 module "s3_bucket" {
   source  = "clouddrove/s3/aws"
-  version = "0.13.0"
+  version = "0.14.0"
 
   name        = "log-bucket"
   application = "clouddrove"
   environment = "test"
-  label_order = ["environment", "application", "name"]
-
+  label_order = ["name", "environment", "attributes"]
 
 
   versioning     = true
@@ -24,7 +23,6 @@ module "vpc" {
   name        = "vpc"
   repository  = "https://registry.terraform.io/modules/clouddrove/vpc/aws/0.14.0"
   environment = "test"
-  #attributes  = ["dhyanio"]
   label_order = ["name", "environment", "attributes"]
 
   cidr_block = "10.0.0.0/16"
