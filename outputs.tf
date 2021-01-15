@@ -1,5 +1,5 @@
 #Module      : VPC
-#Description : Terraform module to create VPC resource on AWS.
+#Description : Terraform module to VPC outputs.
 output "vpc_id" {
   value       = join("", aws_vpc.default.*.id)
   description = "The ID of the VPC."

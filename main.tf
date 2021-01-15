@@ -15,7 +15,6 @@ module "labels" {
   repository  = var.repository
   managedby   = var.managedby
   label_order = var.label_order
-  enabled     = var.vpc_enabled
 }
 
 #Module      : VPC
