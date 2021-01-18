@@ -42,7 +42,7 @@ usage: |-
         version     = "0.14.0"
         name        = "vpc"
         environment = "test"
-        label_order = ["environment", "name"]
+        label_order = ["name", "environment"]
         cidr_block  = "10.0.0.0/16"
       }
     ```

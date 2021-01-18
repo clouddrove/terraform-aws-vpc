@@ -1,7 +1,5 @@
 output "id" {
-  value = concat(
-    module.vpc.*.vpc_id
-  )[0]
+  value = module.vpc.*.vpc_id
   description = "The ID of the VPC."
 }
 
