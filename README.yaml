@@ -17,7 +17,7 @@ github_repo: clouddrove/terraform-aws-vpc
 # Badges to display
 badges:
   - name: "Terraform"
-    image: "https://img.shields.io/badge/Terraform-v0.13-green"
+    image: "https://img.shields.io/badge/Terraform-v0.14-green"
     url: "https://www.terraform.io"
   - name: "Licence"
     image: "https://img.shields.io/badge/License-MIT-blue.svg"
@@ -39,11 +39,10 @@ usage: |-
     ```hcl
     module "vpc" {
         source      = "clouddrove/vpc/aws"
-        version     = "0.13.0"
+        version     = "0.14.0"
         name        = "vpc"
-        application = "clouddrove"
         environment = "test"
-        label_order = ["environment", "name", "application"]
+        label_order = ["name", "environment"]
         cidr_block  = "10.0.0.0/16"
       }
     ```

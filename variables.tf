@@ -6,39 +6,38 @@ variable "name" {
   description = "Name  (e.g. `app` or `cluster`)."
 }
 
-variable "application" {
-  type        = string
-  default     = ""
-  description = "Application (e.g. `cd` or `clouddrove`)."
-}
-
 variable "environment" {
   type        = string
   default     = ""
   description = "Environment (e.g. `prod`, `dev`, `staging`)."
 }
 
+variable "repository" {
+  type        = string
+  default     = "https://registry.terraform.io/modules/clouddrove/vpc/aws/"
+  description = "Terraform current module repo"
+}
+
 variable "label_order" {
-  type        = list
+  type        = list(any)
   default     = []
   description = "Label order, e.g. `name`,`application`."
 }
 
-
 variable "managedby" {
   type        = string
-  default     = "anmol@clouddrove.com"
-  description = "ManagedBy, eg 'CloudDrove' or 'AnmolNagpal'."
+  default     = "hello@clouddrove.com"
+  description = "ManagedBy, eg 'CloudDrove'"
 }
 
 variable "attributes" {
-  type        = list
+  type        = list(any)
   default     = []
   description = "Additional attributes (e.g. `1`)."
 }
 
 variable "tags" {
-  type        = map
+  type        = map(any)
   default     = {}
   description = "Additional tags (e.g. map(`BusinessUnit`,`XYZ`)."
 }
@@ -98,7 +97,9 @@ variable "enable_flow_log" {
 variable "s3_bucket_arn" {
   type        = string
   default     = ""
-  description = "S3 ARN for vpc logs."
+  description = "S3 ARN for vpc logs. "
+  # This is sensitive variable. Above 0.14.0
+  sensitive = true
 }
 
 variable "traffic_type" {

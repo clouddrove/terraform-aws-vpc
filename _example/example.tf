@@ -3,31 +3,28 @@ provider "aws" {
 }
 
 module "s3_bucket" {
+
   source  = "clouddrove/s3/aws"
-  version = "0.13.0"
+  version = "0.14.0"
 
-  name        = "log-bucket"
-  application = "clouddrove"
+  name        = "clouddrove-log-bucket"
   environment = "test"
-  label_order = ["environment", "application", "name"]
+  label_order = ["name", "environment"]
 
-
-
+  bucket_enabled = true
   versioning     = true
   acl            = "private"
-  bucket_enabled = true
 }
 
 module "vpc" {
   source = "../"
 
   name        = "vpc"
-  application = "clouddrove"
   environment = "test"
-  label_order = ["environment", "application", "name"]
+  label_order = ["name", "environment"]
 
-  cidr_block = "10.0.0.0/16"
-
+  vpc_enabled     = true
+  cidr_block      = "10.0.0.0/16"
   enable_flow_log = true
   s3_bucket_arn   = module.s3_bucket.arn
 }
