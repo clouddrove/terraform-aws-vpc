@@ -46,13 +46,12 @@ variable "tags" {
 #Description : Terraform VPC module variables.
 variable "vpc_enabled" {
   type        = bool
-  default     = true
+  default     = false
   description = "Flag to control the vpc creation."
 }
 
 variable "cidr_block" {
   type        = string
-  default     = ""
   description = "CIDR for the VPC."
 }
 
@@ -96,7 +95,6 @@ variable "enable_flow_log" {
 
 variable "s3_bucket_arn" {
   type        = string
-  default     = ""
   description = "S3 ARN for vpc logs. "
   # This is sensitive variable. Above 0.14.0
   sensitive = true
@@ -106,4 +104,16 @@ variable "traffic_type" {
   type        = string
   default     = "ALL"
   description = "Type of traffic to capture. Valid values: ACCEPT,REJECT, ALL."
+}
+
+variable "assign_generated_ipv6_cidr_block" {
+  type=bool
+  default = true
+  description = "associate ipv6 cidr block with vpc"
+}
+
+variable "additional_cidr_block" {
+  type=list(string)
+  default = []
+  
 }
