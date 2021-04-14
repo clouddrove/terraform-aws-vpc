@@ -7,7 +7,7 @@
 #              for resources. You can use terraform-labels to implement a strict naming
 #              convention.
 module "labels" {
-  source = "git::https://github.com/clouddrove/terraform-labels.git?ref=tags/0.14.0"
+  source = "git::https://github.com/clouddrove-sandbox/terraform-labels.git?ref=label-improvements"
 
   name        = var.name
   environment = var.environment
@@ -15,6 +15,7 @@ module "labels" {
   repository  = var.repository
   managedby   = var.managedby
   label_order = var.label_order
+  tags        = var.tags
 }
 
 #Module      : VPC
