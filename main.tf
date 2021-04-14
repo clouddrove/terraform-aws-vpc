@@ -28,7 +28,7 @@ resource "aws_vpc" "default" {
   enable_dns_support               = var.enable_dns_support
   enable_classiclink               = var.enable_classiclink
   enable_classiclink_dns_support   = var.enable_classiclink_dns_support
-  assign_generated_ipv6_cidr_block = true
+  assign_generated_ipv6_cidr_block = var.assign_generated_ipv6_cidr_block
   tags                             = module.labels.tags
   lifecycle {
     # Ignore tags added by kubernetes
@@ -64,4 +64,17 @@ resource "aws_flow_log" "vpc_flow_log" {
   log_destination_type = "s3"
   traffic_type         = var.traffic_type
   vpc_id               = element(aws_vpc.default.*.id, count.index)
+  tags = merge(
+    module.labels.tags,
+    {
+      "Name" = format("%s-flowlog", module.labels.name)
+    }
+  )  
+}
+
+resource "aws_vpc_ipv4_cidr_block_association" "secondary_cidr" {
+  
+  for_each = toset(var.additional_cidr_block)
+  vpc_id     = join("",aws_vpc.default.*.id)
+  cidr_block = each.key
 }
