@@ -107,13 +107,13 @@ variable "traffic_type" {
 }
 
 variable "assign_generated_ipv6_cidr_block" {
-  type=bool
-  default = true
+  type        = bool
+  default     = true
   description = "associate ipv6 cidr block with vpc"
 }
 
 variable "additional_cidr_block" {
-  type=list(string)
+  type    = list(string)
   default = []
-  
+
 }
