@@ -65,9 +65,9 @@ resource "aws_flow_log" "vpc_flow_log" {
   traffic_type         = var.traffic_type
   vpc_id               = element(aws_vpc.default.*.id, count.index)
   tags = merge(
-  module.labels.tags,
-  {
-    "Name" = format("%s-flowlog", module.labels.name)
-  }
+    module.labels.tags,
+    {
+      "Name" = format("%s-flowlog", module.labels.name)
+    }
   )
 }
