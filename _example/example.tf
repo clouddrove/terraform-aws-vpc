@@ -7,7 +7,7 @@ module "s3_bucket" {
   source  = "clouddrove/s3/aws"
   version = "0.14.0"
 
-  name        = "clouddrove-log-bucket"
+  name        = "clouddrov-12345"
   environment = "test"
   label_order = ["name", "environment"]
 

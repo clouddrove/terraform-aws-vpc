@@ -64,4 +64,10 @@ resource "aws_flow_log" "vpc_flow_log" {
   log_destination_type = "s3"
   traffic_type         = var.traffic_type
   vpc_id               = element(aws_vpc.default.*.id, count.index)
+  tags = merge(
+    module.labels.tags,
+    {
+      "Name" = format("%s-flowlog", module.labels.name)
+    }
+  )
 }
