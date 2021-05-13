@@ -45,7 +45,7 @@ resource "aws_vpc" "default" {
 resource "aws_internet_gateway" "default" {
   count = var.vpc_enabled ? 1 : 0
 
-  vpc_id = element(aws_vpc.default.*.id, count.index)
+  vpc_id = join("", aws_vpc.default.*.id)
   tags = merge(
     module.labels.tags,
     {
@@ -63,11 +63,40 @@ resource "aws_flow_log" "vpc_flow_log" {
   log_destination      = var.s3_bucket_arn
   log_destination_type = "s3"
   traffic_type         = var.traffic_type
-  vpc_id               = element(aws_vpc.default.*.id, count.index)
+  vpc_id               = join("", aws_vpc.default.*.id)
   tags = merge(
     module.labels.tags,
     {
       "Name" = format("%s-flowlog", module.labels.name)
+    }
+  )
+}
+
+#Module      : Default Security Group
+#Description : Ensure the default security group of every VPC restricts all traffic.
+resource "aws_default_security_group" "default" {
+  count = var.vpc_enabled && var.restrict_default_sg == true ? 1 : 0
+
+  vpc_id = join("", aws_vpc.default.*.id)
+
+  ingress {
+    protocol  = "-1"
+    self      = true
+    from_port = 0
+    to_port   = 0
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = merge(
+    module.labels.tags,
+    {
+      "Name" = format("%s-default-sg", module.labels.id)
     }
   )
 }
