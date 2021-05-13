@@ -50,6 +50,12 @@ variable "vpc_enabled" {
   description = "Flag to control the vpc creation."
 }
 
+variable "restrict_default_sg" {
+  type        = bool
+  default     = true
+  description = "Flag to control the restrict default sg creation."
+}
+
 variable "cidr_block" {
   type        = string
   default     = ""
@@ -97,7 +103,7 @@ variable "enable_flow_log" {
 variable "s3_bucket_arn" {
   type        = string
   default     = ""
-  description = "S3 ARN for vpc logs. "
+  description = "S3 ARN for vpc logs."
   # This is sensitive variable. Above 0.14.0
   sensitive = true
 }
