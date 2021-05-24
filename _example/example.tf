@@ -23,8 +23,9 @@ module "vpc" {
   environment = "test"
   label_order = ["name", "environment"]
 
-  vpc_enabled     = true
-  cidr_block      = "10.0.0.0/16"
-  enable_flow_log = true
-  s3_bucket_arn   = module.s3_bucket.arn
+  vpc_enabled           = true
+  cidr_block            = "10.0.0.0/16"
+  enable_flow_log       = true
+  s3_bucket_arn         = module.s3_bucket.arn
+  additional_cidr_block = ["172.3.0.0/16", "172.2.0.0/16"]
 }

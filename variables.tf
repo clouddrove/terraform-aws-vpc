@@ -56,6 +56,12 @@ variable "cidr_block" {
   description = "CIDR for the VPC."
 }
 
+variable "additional_cidr_block" {
+  type        = list(string)
+  default     = []
+  description = "	List of secondary CIDR blocks of the VPC."
+}
+
 variable "instance_tenancy" {
   type        = string
   default     = "default"

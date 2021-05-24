@@ -64,4 +64,12 @@ resource "aws_flow_log" "vpc_flow_log" {
   log_destination_type = "s3"
   traffic_type         = var.traffic_type
   vpc_id               = element(aws_vpc.default.*.id, count.index)
+  tags                 = module.labels.tags
+}
+
+resource "aws_vpc_ipv4_cidr_block_association" "secondary_cidr" {
+
+  for_each   = toset(var.additional_cidr_block)
+  vpc_id     = join("", aws_vpc.default.*.id)
+  cidr_block = each.key
 }
