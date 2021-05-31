@@ -103,6 +103,7 @@ Here is an example of how you can use this module in your inventory structure:
 | managedby | ManagedBy, eg 'CloudDrove' | `string` | `"hello@clouddrove.com"` | no |
 | name | Name  (e.g. `app` or `cluster`). | `string` | `""` | no |
 | repository | Terraform current module repo | `string` | `"https://registry.terraform.io/modules/clouddrove/vpc/aws/"` | no |
+| restrict\_default\_sg | Flag to control the restrict default sg creation. | `bool` | `true` | no |
 | s3\_bucket\_arn | S3 ARN for vpc logs. | `string` | `""` | no |
 | tags | Additional tags (e.g. map(`BusinessUnit`,`XYZ`). | `map(any)` | `{}` | no |
 | traffic\_type | Type of traffic to capture. Valid values: ACCEPT,REJECT, ALL. | `string` | `"ALL"` | no |
