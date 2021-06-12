@@ -110,8 +110,7 @@ variable "s3_bucket_arn" {
   type        = string
   default     = ""
   description = "S3 ARN for vpc logs."
-  # This is sensitive variable. Above 0.14.0
-  sensitive = true
+  sensitive   = true
 }
 
 variable "traffic_type" {

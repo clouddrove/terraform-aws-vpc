@@ -7,7 +7,7 @@ on:
 
 jobs:
   Terratest:
-    name: 'Terratest'
+    name: 'terratest'
     runs-on: ubuntu-latest
     steps:
 
@@ -21,7 +21,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.TEST_AWS_ACCESS_SECRET_KEY }}
           aws-region: us-east-2
 
-      - name: 'Terratest'
+      - name: 'terratest'
         uses: 'clouddrove/github-actions@v6.0'
         with:
           actions_subcommand: 'terratest'
