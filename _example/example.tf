@@ -11,8 +11,8 @@ module "bucket" {
   environment = "example"
   label_order = ["name", "environment"]
 
-  versioning     = true
-  acl            = "private"
+  versioning = true
+  acl        = "private"
 }
 
 module "vpc" {
