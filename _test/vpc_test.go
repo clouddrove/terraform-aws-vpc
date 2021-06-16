@@ -1,5 +1,5 @@
 // Managed By : CloudDrove
-// Description : This Terratest is used to test the Terraform VPC module.
+// Description : This terratest is used to test the Terraform VPC module.
 // Copyright @ CloudDrove. All Right Reserved.
 package test
 

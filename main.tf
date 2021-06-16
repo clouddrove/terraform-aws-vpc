@@ -2,17 +2,16 @@
 # Description : This Script is used to create VPC, Internet Gateway and Flow log.
 # Copyright @ CloudDrove. All Right Reserved.
 
-#Module      : Label
+#Module      : labels
 #Description : This terraform module is designed to generate consistent label names and tags
 #              for resources. You can use terraform-labels to implement a strict naming
 #              convention.
 module "labels" {
-  source = "git::https://github.com/clouddrove/terraform-labels.git?ref=tags/0.14.0"
+  source  = "clouddrove/labels/aws"
+  version = "0.15.0"
 
   name        = var.name
   environment = var.environment
-  attributes  = var.attributes
-  repository  = var.repository
   managedby   = var.managedby
   label_order = var.label_order
 }
