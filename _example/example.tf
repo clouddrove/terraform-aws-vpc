@@ -11,7 +11,6 @@ module "bucket" {
   environment = "example"
   label_order = ["name", "environment"]
 
-  bucket_enabled = true
   versioning     = true
   acl            = "private"
 }
