@@ -118,3 +118,16 @@ variable "traffic_type" {
   default     = "ALL"
   description = "Type of traffic to capture. Valid values: ACCEPT,REJECT, ALL."
 }
+
+variable "ipv4_ipam_pool_id" {
+  type        = string
+  default     = ""
+  description = "The ID of an IPv4 IPAM pool you want to use for allocating this VPC's CIDR."
+
+}
+
+variable "ipv4_netmask_length" {
+  type        = string
+  default     = null
+  description = "The netmask length of the IPv4 CIDR you want to allocate to this VPC. Requires specifying a ipv4_ipam_pool_id"
+}
