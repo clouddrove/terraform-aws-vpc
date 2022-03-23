@@ -131,3 +131,59 @@ variable "ipv4_netmask_length" {
   default     = null
   description = "The netmask length of the IPv4 CIDR you want to allocate to this VPC. Requires specifying a ipv4_ipam_pool_id"
 }
+
+variable "default_security_group_ingress" {
+  type        = list(map(string))
+  default     = []
+  description = "List of maps of ingress rules to set on the default security group"
+}
+
+variable "default_security_group_egress" {
+  type        = list(map(string))
+  default     = []
+  description = "List of maps of egress rules to set on the default security group"
+}
+
+variable "enable_dhcp_options" {
+  type        = bool
+  default     = false
+  description = "Should be true if you want to specify a DHCP options set with a custom domain name, DNS servers, NTP servers, netbios servers, and/or netbios server type"
+}
+
+variable "dhcp_options_domain_name" {
+  type        = string
+  default     = ""
+  description = "Specifies DNS name for DHCP options set (requires enable_dhcp_options set to true)"
+}
+
+variable "dhcp_options_domain_name_servers" {
+  type        = list(string)
+  default     = ["AmazonProvidedDNS"]
+  description = "Specify a list of DNS server addresses for DHCP options set, default to AWS provided (requires enable_dhcp_options set to true)"
+}
+
+variable "dhcp_options_ntp_servers" {
+  type        = list(string)
+  default     = []
+  description = "Specify a list of NTP servers for DHCP options set (requires enable_dhcp_options set to true)"
+}
+
+variable "dhcp_options_netbios_name_servers" {
+  type        = list(string)
+  default     = []
+  description = "Specify a list of netbios servers for DHCP options set (requires enable_dhcp_options set to true)"
+}
+
+variable "dhcp_options_netbios_node_type" {
+  type        = string
+  default     = ""
+  description = "Specify netbios node_type for DHCP options set (requires enable_dhcp_options set to true)"
+}
+
+
+variable "enabled_ipv6_egress_only_internet_gateway" {
+  type        = bool
+  default     = false
+  description = "A boolean flag to enable/disable IPv6 Egress-Only Internet Gateway creation"
+}
+

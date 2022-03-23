@@ -83,18 +83,34 @@ resource "aws_default_security_group" "default" {
 
   vpc_id = join("", aws_vpc.default.*.id)
 
-  ingress {
-    protocol  = "-1"
-    self      = true
-    from_port = 0
-    to_port   = 0
+  dynamic "ingress" {
+    for_each = var.default_security_group_ingress
+    content {
+      self             = lookup(ingress.value, "self", null)
+      cidr_blocks      = compact(split(",", lookup(ingress.value, "cidr_blocks", "")))
+      ipv6_cidr_blocks = compact(split(",", lookup(ingress.value, "ipv6_cidr_blocks", "")))
+      prefix_list_ids  = compact(split(",", lookup(ingress.value, "prefix_list_ids", "")))
+      security_groups  = compact(split(",", lookup(ingress.value, "security_groups", "")))
+      description      = lookup(ingress.value, "description", null)
+      from_port        = lookup(ingress.value, "from_port", 0)
+      to_port          = lookup(ingress.value, "to_port", 0)
+      protocol         = lookup(ingress.value, "protocol", "-1")
+    }
   }
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+  dynamic "egress" {
+    for_each = var.default_security_group_egress
+    content {
+      self             = lookup(egress.value, "self", null)
+      cidr_blocks      = compact(split(",", lookup(egress.value, "cidr_blocks", "")))
+      ipv6_cidr_blocks = compact(split(",", lookup(egress.value, "ipv6_cidr_blocks", "")))
+      prefix_list_ids  = compact(split(",", lookup(egress.value, "prefix_list_ids", "")))
+      security_groups  = compact(split(",", lookup(egress.value, "security_groups", "")))
+      description      = lookup(egress.value, "description", null)
+      from_port        = lookup(egress.value, "from_port", 0)
+      to_port          = lookup(egress.value, "to_port", 0)
+      protocol         = lookup(egress.value, "protocol", "-1")
+    }
   }
 
   tags = merge(
@@ -104,3 +120,37 @@ resource "aws_default_security_group" "default" {
     }
   )
 }
+########################
+# DHCP Options Set
+########################
+resource "aws_vpc_dhcp_options" "vpc_dhcp" {
+  count = var.vpc_enabled && var.enable_dhcp_options ? 1 : 0
+
+  domain_name          = var.dhcp_options_domain_name
+  domain_name_servers  = var.dhcp_options_domain_name_servers
+  ntp_servers          = var.dhcp_options_ntp_servers
+  netbios_name_servers = var.dhcp_options_netbios_name_servers
+  netbios_node_type    = var.dhcp_options_netbios_node_type
+
+  tags = merge(
+    module.labels.tags,
+    {
+      "Name" = format("%s-vpc_dhcp", module.labels.id)
+    }
+  )
+}
+
+resource "aws_vpc_dhcp_options_association" "this" {
+  count = var.vpc_enabled && var.enable_dhcp_options ? 1 : 0
+
+  vpc_id          = join("", aws_vpc.default.*.id)
+  dhcp_options_id = join("", aws_vpc_dhcp_options.vpc_dhcp.*.id)
+}
+
+resource "aws_egress_only_internet_gateway" "default" {
+  count = var.vpc_enabled && var.enabled_ipv6_egress_only_internet_gateway ? 1 : 0
+
+  vpc_id = join("", aws_vpc.default.*.id)
+  tags   = module.labels.tags
+}
+
