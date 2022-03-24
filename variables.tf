@@ -186,4 +186,3 @@ variable "enabled_ipv6_egress_only_internet_gateway" {
   default     = false
   description = "A boolean flag to enable/disable IPv6 Egress-Only Internet Gateway creation"
 }
-

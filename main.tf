@@ -120,9 +120,9 @@ resource "aws_default_security_group" "default" {
     }
   )
 }
-########################
-# DHCP Options Set
-########################
+
+#Module      : VPC DHCP Option
+#Description : Provides a VPC DHCP Options resource.
 resource "aws_vpc_dhcp_options" "vpc_dhcp" {
   count = var.vpc_enabled && var.enable_dhcp_options ? 1 : 0
 
@@ -147,10 +147,10 @@ resource "aws_vpc_dhcp_options_association" "this" {
   dhcp_options_id = join("", aws_vpc_dhcp_options.vpc_dhcp.*.id)
 }
 
+
 resource "aws_egress_only_internet_gateway" "default" {
   count = var.vpc_enabled && var.enabled_ipv6_egress_only_internet_gateway ? 1 : 0
 
   vpc_id = join("", aws_vpc.default.*.id)
   tags   = module.labels.tags
 }
-
