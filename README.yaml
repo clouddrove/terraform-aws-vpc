@@ -22,7 +22,9 @@ badges:
   - name: "Licence"
     image: "https://img.shields.io/badge/License-MIT-blue.svg"
     url: "LICENSE.md"
-
+  - name: "tfsec"
+    image: "https://github.com/clouddrove/terraform-aws-vpc/actions/workflows/tfsec.yml/badge.svg"
+    url: "https://github.com/clouddrove/terraform-aws-vpc/actions/workflows/tfsec.yml"
 #  description of this project
 description: |-
   Terraform module to create VPC resource on AWS.
