@@ -1,37 +1,46 @@
-name: 'Terraform GitHub Actions'
+name: static-checks
+
 on:
   pull_request:
-    branches:
-      - master
 
 jobs:
-  lint:
-    name: 'terraform lint'
+  versionExtract:
+    name: Get min/max versions
     runs-on: ubuntu-latest
-    steps:
-      - name: 'Checkout'
-        uses: actions/checkout@v2.3.4
 
-      - name: Setup Terraform
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Terraform min/max versions
+        id: minMax
+        uses: clowdhaus/terraform-min-max@main
+    outputs:
+      minVersion: ${{ steps.minMax.outputs.minVersion }}
+      maxVersion: ${{ steps.minMax.outputs.maxVersion }}
+
+
+  versionEvaluate:
+    name: Evaluate Terraform versions
+    runs-on: ubuntu-latest
+    needs: versionExtract
+    strategy:
+      fail-fast: false
+      matrix:
+        version:
+          - ${{ needs.versionExtract.outputs.minVersion }}
+          - ${{ needs.versionExtract.outputs.maxVersion }}
+        directory:
+          - _example/
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Terraform v${{ matrix.version }}
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_version: 1.1.7
-
-      - name: Run terraform fmt check
-        run: terraform fmt -check -diff -recursive
-
-  validate:
-    name: 'terraform validate'
-    needs: lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: 'Checkout'
-        uses: actions/checkout@v2.3.4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1
-        with:
-          terraform_version: 1.0.9
+          terraform_version: ${{ matrix.version }}
 
       - name: 'Configure AWS Credentials'
         uses: clouddrove/configure-aws-credentials@v1
@@ -40,49 +49,34 @@ jobs:
           aws-secret-access-key: ${{ secrets.TEST_AWS_ACCESS_SECRET_KEY }}
           aws-region: us-east-2
 
-      - name: Initialize Terraform
+      - name: Init & validate v${{ matrix.version }}
         run: |
-          cd _example
-          terraform init -input=false
-
-      - name: Terraform Validate
-        id: plan
-        continue-on-error: true
-        run: |
-          cd _example
+          cd ${{ matrix.directory }}
+          terraform init
           terraform validate
+          terraform plan -input=false -no-color
+      - name: tflint
+        uses: reviewdog/action-tflint@master
+        with:
+          github_token: ${{ secrets.GITHUB }}
+          working_directory: ${{ matrix.directory }}
+          fail_on_error: 'true'
+          filter_mode: 'nofilter'
+          flags: '--module'
 
-
-  plan:
-    name: 'terraform plan'
-    needs:
-      - lint
-      - validate
+  format:
+    name: Check code format
     runs-on: ubuntu-latest
-    steps:
-      - name: 'Checkout'
-        uses: actions/checkout@v2.3.4
+    needs: versionExtract
 
-      - name: Setup Terraform
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Terraform v${{ needs.versionExtract.outputs.maxVersion }}
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_version: 1.0.9
+          terraform_version: ${{ needs.versionExtract.outputs.maxVersion }}
 
-      - name: 'Configure AWS Credentials'
-        uses: clouddrove/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.TEST_AWS_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.TEST_AWS_ACCESS_SECRET_KEY }}
-          aws-region: us-east-2
-
-      - name: Initialize Terraform
-        run: |
-          cd _example
-          terraform init -input=false
-
-      - name: Terraform Plan
-        id: plan
-        continue-on-error: true
-        run: |
-          cd _example
-          terraform plan -input=false -no-color
+      - name: Check Terraform format changes
+        run: terraform fmt --recursive
