@@ -9,7 +9,7 @@
 name: Terraform AWS VPC
 
 # License of this project
-license: "MIT"
+license: "APACHE"
 
 # Canonical GitHub repo
 github_repo: clouddrove/terraform-aws-vpc
@@ -20,7 +20,7 @@ badges:
     image: "https://img.shields.io/badge/Terraform-v1.1.7-green"
     url: "https://www.terraform.io"
   - name: "Licence"
-    image: "https://img.shields.io/badge/License-MIT-blue.svg"
+    image: "https://img.shields.io/badge/License-APACHE-blue.svg"
     url: "LICENSE.md"
   - name: "tfsec"
     image: "https://github.com/clouddrove/terraform-aws-vpc/actions/workflows/tfsec.yml/badge.svg"

@@ -12,7 +12,7 @@ module "vpc" {
 
   vpc_enabled                               = true
   cidr_block                                = "10.0.0.0/16"
-  enable_flow_log                           = true
+  enable_flow_log                           = false
   additional_cidr_block                     = ["172.3.0.0/16", "172.2.0.0/16"]
   enable_dhcp_options                       = false
   dhcp_options_domain_name                  = "service.consul"

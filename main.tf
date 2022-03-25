@@ -143,41 +143,13 @@ resource "aws_egress_only_internet_gateway" "default" {
   tags   = module.labels.tags
 }
 
-#Module      : aws_s3_bucket
-#Description : Provides a S3 bucket resource.
-resource "aws_s3_bucket" "s3_bucket" {
-  count  = var.vpc_enabled && var.enable_flow_log ? 1 : 0
-  bucket = format("%s-logs-bucket", module.labels.id)
-
-  tags = merge(
-    module.labels.tags,
-    {
-      "Name" = format("%s-s3_bucket", module.labels.id)
-    }
-  )
-}
-
-resource "aws_s3_bucket_acl" "s3_bucket_acl" {
-  count  = var.enable_flow_log ? 1 : 0
-  bucket = join("", aws_s3_bucket.s3_bucket.*.id)
-  acl    = "private"
-}
-
-resource "aws_s3_bucket_versioning" "s3_bucket_versioning" {
-  count  = var.enable_flow_log ? 1 : 0
-  bucket = join("", aws_s3_bucket.s3_bucket.*.id)
-  versioning_configuration {
-    status = "Enabled"
-  }
-}
-
 #Module      : FLOW LOG
 #Description : Provides a VPC/Subnet/ENI Flow Log to capture IP traffic for a
 #              specific network interface, subnet, or VPC. Logs are sent to S3 Bucket.
 resource "aws_flow_log" "vpc_flow_log" {
   count = var.vpc_enabled && var.enable_flow_log == true ? 1 : 0
 
-  log_destination      = join("", aws_s3_bucket.s3_bucket.*.arn)
+  log_destination      = var.s3_bucket_arn
   log_destination_type = "s3"
   traffic_type         = var.traffic_type
   vpc_id               = join("", aws_vpc.default.*.id)
