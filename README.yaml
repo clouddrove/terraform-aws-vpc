@@ -25,6 +25,11 @@ badges:
   - name: "tfsec"
     image: "https://github.com/clouddrove/terraform-aws-vpc/actions/workflows/tfsec.yml/badge.svg"
     url: "https://github.com/clouddrove/terraform-aws-vpc/actions/workflows/tfsec.yml"
+  - name: "static-checks"
+    image: "https://github.com/clouddrove/terraform-aws-vpc/actions/workflows/terraform.yml/badge.svg"
+     url: "https://github.com/clouddrove/terraform-aws-vpc/actions/workflows/terraform.yml"
+
+
 #  description of this project
 description: |-
   Terraform module to create VPC resource on AWS.
