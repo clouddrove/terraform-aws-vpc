@@ -22,6 +22,9 @@
 <a href="https://github.com/clouddrove/terraform-aws-vpc/actions/workflows/tfsec.yml">
   <img src="https://github.com/clouddrove/terraform-aws-vpc/actions/workflows/tfsec.yml/badge.svg" alt="tfsec">
 </a>
+<a href="https://github.com/clouddrove/terraform-aws-vpc/actions/workflows/terraform.yml">
+  <img src="https://github.com/clouddrove/terraform-aws-vpc/actions/workflows/terraform.yml/badge.svg" alt="static-checks">
+</a>
 
 
 </p>
