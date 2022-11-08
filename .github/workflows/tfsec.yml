@@ -12,7 +12,7 @@ jobs:
         uses: actions/checkout@master
 
       - name: tfsec
-        uses: aquasecurity/tfsec-sarif-action@v0.1.0
+        uses: triat/terraform-security-scan@master
         if: github.event_name == 'pull_request'
         with:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
@@ -21,6 +21,7 @@ jobs:
           working_directory: ./_example
           tfsec_actions_comment: true
           full_repo_scan: true
+          tfsec_output_format: sarif
           continue-on-error: true
 
 #      - name: tfsec
