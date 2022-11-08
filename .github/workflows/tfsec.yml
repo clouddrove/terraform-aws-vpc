@@ -11,23 +11,27 @@ jobs:
       - name: Clone repo
         uses: actions/checkout@master
 
-#      - name: tfsec
-#        uses: aquasecurity/tfsec-sarif-action@v0.1.0
-#        with:
-#          soft_fail: true
-#          sarif_file: tfsec.sarif
-#          working_directory: ./_example
-#          full_repo_scan: true
-
       - name: tfsec
-        uses: triat/terraform-security-scan@master
+        uses: aquasecurity/tfsec-sarif-action@v0.1.0
         if: github.event_name == 'pull_request'
-        env:
+        with:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
-          tfsec_actions_working_dir: ./_example
+          soft_fail: true
+          sarif_file: tfsec.sarif
+          working_directory: ./_example
           tfsec_actions_comment: true
-          tfsec_output_format: sarif
+          full_repo_scan: true
           continue-on-error: true
+
+#      - name: tfsec
+#        uses: triat/terraform-security-scan@master
+#        if: github.event_name == 'pull_request'
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+#          tfsec_actions_working_dir: ./_example
+#          tfsec_actions_comment: true
+#          tfsec_output_format: sarif
+#          continue-on-error: true
 
 #      - name: 'Setup tfsec Basic'
 #        uses: aquasecurity/tfsec-action@v1.0.0
