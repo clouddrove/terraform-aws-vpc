@@ -24,6 +24,8 @@ jobs:
         uses: triat/terraform-security-scan@master
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          soft_fail: true
+          sarif_file: tfsec.sarif
           tfsec_actions_comment: true
           tfsec_output_format: sarif
           tfsec_actions_working_dir: ./
