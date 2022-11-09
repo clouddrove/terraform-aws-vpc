@@ -37,7 +37,7 @@ jobs:
           tfsec_args: --soft-fail
           working_directory: ./
           tfsec_formats: sarif
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          github_token: ${{ secrets.TOKEN }}
 
 
 
