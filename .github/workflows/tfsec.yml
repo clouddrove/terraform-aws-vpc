@@ -18,13 +18,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
       - name: Terraform security scan
+        if: github.event_name == 'pull_request'
         uses: triat/terraform-security-scan@master
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
           tfsec_actions_comment: true
           tfsec_output_format: sarif
-          tfsec_actions_working_dir: ./_example
+          tfsec_actions_working_dir: ./
+        continue-on-error: true
 
 
 
