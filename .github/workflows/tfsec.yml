@@ -25,9 +25,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
           soft_fail: true
-          sarif_file: tfsec.sarif
           tfsec_actions_comment: true
-          tfsec_output_format: sarif
           tfsec_actions_working_dir: ./
         continue-on-error: true
 
@@ -37,7 +35,7 @@ jobs:
           tfsec_args: --soft-fail
           working_directory: ./
           tfsec_formats: sarif
-          INPUT_GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
 
 
 
