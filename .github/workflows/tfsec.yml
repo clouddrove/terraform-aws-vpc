@@ -31,6 +31,14 @@ jobs:
           tfsec_actions_working_dir: ./
         continue-on-error: true
 
+      - name: tfsec
+        uses: aquasecurity/tfsec-pr-commenter-action@v1.2.0
+        with:
+          tfsec_args: --soft-fail
+          working_directory: ./
+          tfsec_formats: sarif
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+
 
 
 #      - name: tfsec
