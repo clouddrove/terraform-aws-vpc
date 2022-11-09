@@ -24,7 +24,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
           tfsec_actions_comment: true
           tfsec_output_format: sarif
-          tfsec_actions_working_dir: ./
+          tfsec_actions_working_dir: ./_example
 
 
 
