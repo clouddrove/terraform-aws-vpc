@@ -2,14 +2,28 @@ name: tfsec
 on:
   pull_request:
 
-jobs:
-  tfsec:
-    name: tfsec sarif report
-    runs-on: ubuntu-latest
+#jobs:
+#  tfsec:
+#    name: tfsec sarif report
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - name: Clone repo
+#        uses: actions/checkout@master
 
-    steps:
-      - name: Clone repo
-        uses: actions/checkout@master
+  jobs:
+    tfsec:
+      name: tfsec
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v2
+        - name: Terraform security scan
+          uses: triat/terraform-security-scan@v3.0.0
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
 
 #      - name: tfsec
 #        uses: aquasecurity/tfsec-sarif-action@v0.1.0
