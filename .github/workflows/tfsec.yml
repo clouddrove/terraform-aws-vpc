@@ -11,18 +11,35 @@ jobs:
       - name: Clone repo
         uses: actions/checkout@master
 
-      - name: tfsec
-        uses: aquasecurity/tfsec-sarif-action@v0.1.0
-        if: github.event_name == 'pull_request'
-        with:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-          soft_fail: true
-          sarif_file: tfsec.sarif
-          working_directory: _example
-          tfsec_actions_comment: true
-          full_repo_scan: true
-          tfsec_output_format: sarif
-          continue-on-error: true
+#      - name: tfsec
+#        uses: aquasecurity/tfsec-sarif-action@v0.1.0
+#        if: github.event_name == 'pull_request'
+#        with:
+#          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+#          soft_fail: true
+#          sarif_file: tfsec.sarif
+#          working_directory: _example
+#          tfsec_actions_comment: true
+#          full_repo_scan: true
+#          tfsec_output_format: sarif
+#          continue-on-error: true
+
+
+            - name: tfsec
+              uses: aquasecurity/tfsec-sarif-action@v0.1.3
+              with:
+                sarif_file: tfsec.sarif
+                working_directory: _example
+                full_repo_scan: true
+                tfvars_file: _example
+
+            - name: Upload SARIF file
+              uses: github/codeql-action/upload-sarif@v1
+              with:
+                 # Path to SARIF file relative to the root of the repository
+                 sarif_file: tfsec.sarif
+
+
 
 #      - name: tfsec
 #        uses: triat/terraform-security-scan@master
@@ -40,10 +57,10 @@ jobs:
 #          soft_fail: true
 #          working_directory: ./terraform/prod
 
-
-      - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v1
-        with:
-          # Path to SARIF file relative to the root of the repository
-          sarif_file: tfsec.sarif
+#
+#      - name: Upload SARIF file
+#        uses: github/codeql-action/upload-sarif@v1
+#        with:
+#          # Path to SARIF file relative to the root of the repository
+#          sarif_file: tfsec.sarif
 
