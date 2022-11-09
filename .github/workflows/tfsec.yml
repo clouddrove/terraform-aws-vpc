@@ -53,11 +53,11 @@ jobs:
 #          full_repo_scan: true
 #          tfvars_file: main.tf
 
-#      - name: Upload SARIF file
-#        uses: github/codeql-action/upload-sarif@v1
-#        with:
-#           # Path to SARIF file relative to the root of the repository
-#           sarif_file: tfsec.sarif
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+           # Path to SARIF file relative to the root of the repository
+           sarif_file: tfsec.sarif
 
 
 
@@ -78,9 +78,9 @@ jobs:
 #          working_directory: ./terraform/prod
 
 #
-      - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v1
-        with:
-          # Path to SARIF file relative to the root of the repository
-          sarif_file: tfsec.sarif
+#      - name: Upload SARIF file
+#        uses: github/codeql-action/upload-sarif@v1
+#        with:
+#          # Path to SARIF file relative to the root of the repository
+#          sarif_file: tfsec.sarif
 
