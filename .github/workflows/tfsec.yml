@@ -17,7 +17,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
           soft_fail: true
           tfsec_actions_comment: true
-          tfsec_actions_working_dir: ./
+          tfsec_actions_working_dir: ./_example
         continue-on-error: true
 
 #      - name: 'Post comment to Pull Request'
