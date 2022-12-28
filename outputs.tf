@@ -51,3 +51,13 @@ output "igw_id" {
   value       = join("", aws_internet_gateway.default.*.id)
   description = "The ID of the Internet Gateway."
 }
+
+output "enable_classiclink" {
+  value = join("", aws_vpc.default.*.enable_classiclink)
+  description = "Whether or not the VPC has Classiclink enabled"
+}
+
+output "arn" {
+  value = join("", aws_flow_log.vpc_flow_log.*.arn)
+  description = "Amazon Resource Name (ARN) of VPC"
+}
