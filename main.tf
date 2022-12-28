@@ -8,7 +8,7 @@
 #              convention.
 module "labels" {
   source  = "clouddrove/labels/aws"
-  version = "15.0.0"
+  version = "0.15.0"
 
   name        = var.name
   environment = var.environment
