@@ -79,7 +79,7 @@ Here is an example of how you can use this module in your inventory structure:
   ```hcl
   module "vpc" {
       source      = "clouddrove/vpc/aws"
-      version     = "0.15.0"
+      version     = "1.3.0"
       name        = "vpc"
       environment = "test"
       label_order = ["name", "environment"]
@@ -131,6 +131,8 @@ Here is an example of how you can use this module in your inventory structure:
 
 | Name | Description |
 |------|-------------|
+| arn | Amazon Resource Name (ARN) of VPC |
+| enable\_classiclink | Whether or not the VPC has Classiclink enabled |
 | igw\_id | The ID of the Internet Gateway. |
 | ipv6\_cidr\_block | The IPv6 CIDR block. |
 | tags | A mapping of tags to assign to the resource. |
