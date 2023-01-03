@@ -4,6 +4,6 @@ output "id" {
 }
 
 output "tags" {
-  value       = module.vpc.tags
+  value       = module.vpc.*.tags
   description = "A mapping of tags to assign to the resource."
 }

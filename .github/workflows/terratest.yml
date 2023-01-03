@@ -22,7 +22,7 @@ jobs:
           aws-region: us-east-2
 
       - name: 'terratest'
-        uses: 'clouddrove/github-actions@v9.0.1'
+        uses: 'clouddrove/github-actions@v9.0.2'
         with:
           actions_subcommand: 'terratest'
           if: ${{ github.event.label.name == 'terratest' }}
