@@ -33,4 +33,3 @@ jobs:
           tfsec_actions_comment: true
           tfsec_output_format: sarif
         continue-on-error: true
-
