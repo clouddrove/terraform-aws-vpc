@@ -1,28 +1,22 @@
-name: tfsec
+name: tfsec-pr-commenter
 on:
   pull_request:
-
 jobs:
   tfsec:
-    name: tfsec sarif report
+    name: tfsec PR commenter
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
 
     steps:
       - name: Clone repo
         uses: actions/checkout@master
-
       - name: tfsec
-        uses: aquasecurity/tfsec-sarif-action@v0.1.0
+        uses: aquasecurity/tfsec-pr-commenter-action@v1.2.0
         with:
-          sarif_file: tfsec.sarif
-          working_directory: _example
-          full_repo_scan: true
-
-      - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v1
-        with:
-          # Path to SARIF file relative to the root of the repository
-          sarif_file: tfsec.sarif
+          github_token: ${{ github.token }}
 
       - name: 'Terraform security scan Advanced'
         uses: triat/terraform-security-scan@v3.0.3
