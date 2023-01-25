@@ -101,8 +101,8 @@ jobs:
         if: steps.plan.outcome == 'failure'
         run: exit 1
 
-      - name: 'terraform apply'
-        uses: dflook/terraform-apply@v1
+      - name: 'terraform destroy'
+        uses: dflook/terraform-destroy@v1
         with:
           path: ./_example
           auto_approve: true
@@ -110,3 +110,7 @@ jobs:
 #      - name: 'Terraform apply'
 #        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 #        run: cd ./_example && apply -auto-approve
+
+#      - name: Terraform destroy
+#          run: terraform destroy --auto-approve
+#          if: "${{ github.event.inputs.terraform_operation == 'destroy' }}"
