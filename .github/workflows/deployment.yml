@@ -1,0 +1,106 @@
+name: terraform deployment
+on:
+  pull_request:
+
+jobs:
+  terraform:
+    name: "Terraform"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.3.6
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: 'Configure AWS Credentials'
+        uses: clouddrove/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.TEST_AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.TEST_AWS_ACCESS_SECRET_KEY }}
+          aws-region: us-east-2
+
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt -check
+
+      - name: 'Check terraform version'
+        run: terraform version
+
+      - name: 'Terraform Initialize'
+        id: init
+        run: cd ./_example && terraform init
+
+      - name: 'Terraform Validate'
+        id: validate
+        run: cd ./_example && terraform validate
+
+#      - name: 'Setup tfsec Basic'
+#        uses: aquasecurity/tfsec-action@v1.0.0
+#        with:
+#          soft_fail: true
+#          working_directory: ./terraform/environments/dev
+
+#      - name: 'Terraform security scan Advanced'
+#        uses: triat/terraform-security-scan@v3.0.3
+#        if: github.event_name == 'pull_request'
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+#          tfsec_actions_working_dir: ./terraform/environments/dev
+#          tfsec_actions_comment: true
+#          tfsec_output_format: sarif
+#        continue-on-error: true
+
+      # - name: tfsec commenter for PR
+      #   uses: tfsec/tfsec-pr-commenter-action@main
+      #   with:
+      #     github_token: ${{ secrets.TOKEN }}
+      #     working_directory: ./terraform/environments/dev
+
+      # - name: Upload SARIF file
+      #   uses: github/codeql-action/upload-sarif@v1
+      #   with:
+      #     # Path to SARIF file relative to the root of the repository
+      #     sarif_file: tfsec.sarif
+      #     checkout_path: ./terraform/environments/dev
+
+      - name: 'Terraform Plan'
+        id: plan
+        if: github.event_name == 'pull_request'
+        run: cd ./_example && terraform plan -no-color
+        continue-on-error: true
+
+      - name: 'Post comment to Pull Request'
+        uses: actions/github-script@0.9.0
+        if: github.event_name == 'pull_request'
+        env:
+          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### Terraform Format and Style for "test" \`${{ steps.fmt.outcome }}\`
+            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+            <details><summary>Show Plan</summary>
+            \`\`\`\n
+            ${process.env.PLAN}
+            \`\`\`
+            </details>
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+      ## - name: Terraform Apply
+      ##   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      ##   run: terraform -chdir=./terraform/environments/dev apply -auto-approve
