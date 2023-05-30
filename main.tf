@@ -20,7 +20,7 @@ module "labels" {
 #Module      : VPC
 #Description : Terraform module to create VPC resource on AWS.
 resource "aws_vpc" "default" {
-  count = var.vpc_enabled == true ? 1 : 0
+  count = var.vpc_enabled ? 1 : 0
 
   cidr_block                       = var.cidr_block
   instance_tenancy                 = var.instance_tenancy
