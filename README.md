@@ -106,8 +106,6 @@ Here is an example of how you can use this module in your inventory structure:
 | dhcp\_options\_netbios\_name\_servers | Specify a list of netbios servers for DHCP options set (requires enable\_dhcp\_options set to true) | `list(string)` | `[]` | no |
 | dhcp\_options\_netbios\_node\_type | Specify netbios node\_type for DHCP options set (requires enable\_dhcp\_options set to true) | `string` | `""` | no |
 | dhcp\_options\_ntp\_servers | Specify a list of NTP servers for DHCP options set (requires enable\_dhcp\_options set to true) | `list(string)` | `[]` | no |
-| enable\_classiclink | A boolean flag to enable/disable ClassicLink for the VPC. | `bool` | `false` | no |
-| enable\_classiclink\_dns\_support | A boolean flag to enable/disable ClassicLink DNS Support for the VPC. | `bool` | `false` | no |
 | enable\_dhcp\_options | Should be true if you want to specify a DHCP options set with a custom domain name, DNS servers, NTP servers, netbios servers, and/or netbios server type | `bool` | `false` | no |
 | enable\_dns\_hostnames | A boolean flag to enable/disable DNS hostnames in the VPC. | `bool` | `true` | no |
 | enable\_dns\_support | A boolean flag to enable/disable DNS support in the VPC. | `bool` | `true` | no |
@@ -132,7 +130,6 @@ Here is an example of how you can use this module in your inventory structure:
 | Name | Description |
 |------|-------------|
 | arn | Amazon Resource Name (ARN) of VPC |
-| enable\_classiclink | Whether or not the VPC has Classiclink enabled |
 | igw\_id | The ID of the Internet Gateway. |
 | ipv6\_cidr\_block | The IPv6 CIDR block. |
 | tags | A mapping of tags to assign to the resource. |
