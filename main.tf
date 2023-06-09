@@ -19,19 +19,22 @@ module "labels" {
 
 #Module      : VPC
 #Description : Terraform module to create VPC resource on AWS.
+
 resource "aws_vpc" "default" {
   count = var.vpc_enabled ? 1 : 0
+  cidr_block          = var.cidr_block
+  ipv4_ipam_pool_id   = try(var.additional_cidr_block.ipv4_ipam_pool_id, null)
+  ipv4_netmask_length = try(var.additional_cidr_block.ipv4_netmask_length, null)
 
-  cidr_block                       = var.cidr_block
+  ipv6_cidr_block     = try(var.additional_ipv6_cidr_block.ipv6_cidr_block, null)
+  ipv6_ipam_pool_id   = try(var.additional_ipv6_cidr_block.ipv6_ipam_pool_id, null)
+  ipv6_netmask_length = try(var.additional_ipv6_cidr_block.ipv6_netmask_length, null)
+
   instance_tenancy                 = var.instance_tenancy
-  enable_dns_hostnames             = var.enable_dns_hostnames
-  enable_dns_support               = var.enable_dns_support
-  enable_classiclink               = var.enable_classiclink
-  enable_classiclink_dns_support   = var.enable_classiclink_dns_support
-  ipv4_ipam_pool_id                = var.ipv4_ipam_pool_id
-  ipv4_netmask_length              = var.ipv4_ipam_pool_id != "" ? var.ipv4_netmask_length : null
-  assign_generated_ipv6_cidr_block = true
+  enable_dns_hostnames             = var.dns_hostnames_enabled
+  enable_dns_support               = var.dns_support_enabled
   tags                             = module.labels.tags
+  assign_generated_ipv6_cidr_block = true
   lifecycle {
     # Ignore tags added by kubernetes
     ignore_changes = [
@@ -40,6 +43,16 @@ resource "aws_vpc" "default" {
       tags["SubnetType"],
     ]
   }
+}
+
+#Module       :VPC IPV4 CIDR BLOCK ASSOCIATION 
+#Description  :Provides a resource to associate additional IPv4 CIDR blocks with a VPC.
+
+resource "aws_vpc_ipv4_cidr_block_association" "default" {
+
+  for_each   = toset(var.additional_cidr_block)
+  vpc_id     = join("", aws_vpc.default.*.id)
+  cidr_block = each.key
 }
 
 #Module      : INTERNET GATEWAY
@@ -56,12 +69,14 @@ resource "aws_internet_gateway" "default" {
   )
 }
 
+#Module      : EGRESS ONLY INTERNET GATEWAY
+#Description : Terraform module which creates EGRESS ONLY INTERNET GATEWAY resources on AWS
 
-resource "aws_vpc_ipv4_cidr_block_association" "secondary_cidr" {
+resource "aws_egress_only_internet_gateway" "default" {
+  count = var.vpc_enabled && var.enabled_ipv6_egress_only_internet_gateway ? 1 : 0
 
-  for_each   = toset(var.additional_cidr_block)
-  vpc_id     = join("", aws_vpc.default.*.id)
-  cidr_block = each.key
+  vpc_id = join("", aws_vpc.default.*.id)
+  tags   = module.labels.tags
 }
 
 #Module      : Default Security Group
@@ -108,6 +123,30 @@ resource "aws_default_security_group" "default" {
     }
   )
 }
+#Module      : DEFAULT ROUTE TABLE
+#Description : Provides a resource to manage a default route table of a VPC.
+#              This resource can manage the default route table of the default or a non-default VPC.
+resource "aws_default_route_table" "default" {
+  default_route_table_id = aws_vpc.default[0].default_route_table_id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.default[0].id
+  }
+  route {
+    ipv6_cidr_block        = "::/0"
+    egress_only_gateway_id = aws_egress_only_internet_gateway.default[0].id
+  }
+    tags = merge(
+      module.labels.tags,
+    {
+        "Name" = format("%s-default_rt", module.labels.id)
+    }
+  )
+
+  
+}
+
 
 #Module      : VPC DHCP Option
 #Description : Provides a VPC DHCP Options resource.
@@ -135,14 +174,6 @@ resource "aws_vpc_dhcp_options_association" "this" {
   dhcp_options_id = join("", aws_vpc_dhcp_options.vpc_dhcp.*.id)
 }
 
-
-resource "aws_egress_only_internet_gateway" "default" {
-  count = var.vpc_enabled && var.enabled_ipv6_egress_only_internet_gateway ? 1 : 0
-
-  vpc_id = join("", aws_vpc.default.*.id)
-  tags   = module.labels.tags
-}
-
 #Module      : FLOW LOG
 #Description : Provides a VPC/Subnet/ENI Flow Log to capture IP traffic for a
 #              specific network interface, subnet, or VPC. Logs are sent to S3 Bucket.
@@ -155,3 +186,36 @@ resource "aws_flow_log" "vpc_flow_log" {
   vpc_id               = join("", aws_vpc.default.*.id)
   tags                 = module.labels.tags
 }
+
+#Module        : DEFAULT NETWORK ACL
+#Description   : Provides a resource to manage a VPC's default network ACL.
+#                This resource can manage the default network ACL of the default or a non-default VPC.
+resource "aws_default_network_acl" "default" {
+  default_network_acl_id = aws_vpc.default[0].default_network_acl_id
+
+  ingress {
+    protocol   = -1
+    rule_no    = 100
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 0
+    to_port    = 0
+  }
+
+  egress {
+    protocol   = -1
+    rule_no    = 100
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 0
+    to_port    = 0
+  }
+  tags = merge(
+    module.labels.tags,
+    {
+      "Name" = format("%s-vpc_dhcp", module.labels.id)
+    }
+  )
+}
+
+
