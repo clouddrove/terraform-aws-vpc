@@ -23,37 +23,6 @@ output "vpc_ipv6_association_id" {
   value       = join("", aws_vpc.default.*.ipv6_association_id)
   description = "The association ID for the IPv6 CIDR block."
 }
-# output "additional_cidr_blocks" {
-#   value = [
-#     for i in aws_vpc_ipv4_cidr_block_association.default :
-#     i.cidr_block
-#   ]
-#    description = "A list of The additional IPv4 CIDR block associated with the vpc"
-# }
-
-# output "additional_cidr_blocks_to_association_ids" {
-#   value = {
-#     for i in aws_vpc_ipv4_cidr_block_association.default :
-#     i.cidr_block => i.id
-#   }
-#   description = "A map of the additional IPv6 CIDR blocks to VPC CIDR association IDs"
-# }
-
-# output "additional_ipv6_cidr_blocks" {
-#   value = [
-#     for i in aws_vpc_ipv6_cidr_block_association.default :
-#     i.ipv6_cidr_block
-#   ]
-#   description = "A list of the additional IPv6 CIDR blocks associated with the VPC"
-# }
-
-# output "additional_ipv6_cidr_blocks_to_association_ids" {
-#   value = {
-#     for i in aws_vpc_ipv6_cidr_block_association.default :
-#     i.ipv6_cidr_block => i.id
-#   }
-#   description = "A map of the additional IPv6 CIDR blocks to VPC CIDR association IDs"
-# }
 
 output "ipv6_cidr_block_network_border_group" {
   value       = join("", aws_vpc.default.*.ipv6_cidr_block_network_border_group)
