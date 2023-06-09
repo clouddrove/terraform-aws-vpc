@@ -33,13 +33,9 @@ resource "aws_vpc" "default" {
   instance_tenancy                 = var.instance_tenancy
   enable_dns_hostnames             = var.dns_hostnames_enabled
   enable_dns_support               = var.dns_support_enabled
-  enable_dns_hostnames             = var.enable_dns_hostnames
-  enable_dns_support               = var.enable_dns_support
-  ipv4_ipam_pool_id                = var.ipv4_ipam_pool_id
-  ipv4_netmask_length              = var.ipv4_ipam_pool_id != "" ? var.ipv4_netmask_length : null
   assign_generated_ipv6_cidr_block = true
   tags                             = module.labels.tags
-  assign_generated_ipv6_cidr_block = true
+
   lifecycle {
     # Ignore tags added by kubernetes
     ignore_changes = [
