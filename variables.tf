@@ -96,18 +96,6 @@ variable "dns_support_enabled" {
   description = "A boolean flag to enable/disable DNS support in the VPC."
 }
 
-variable "enable_classiclink" {
-  type        = bool
-  default     = false
-  description = "A boolean flag to enable/disable ClassicLink for the VPC."
-}
-
-variable "enable_classiclink_dns_support" {
-  type        = bool
-  default     = false
-  description = "A boolean flag to enable/disable ClassicLink DNS Support for the VPC."
-}
-
 #Module      : FLOW LOG
 #Description : Terraform flow log module variables.
 variable "enable_flow_log" {

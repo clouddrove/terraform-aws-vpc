@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2023-05-31
+### :sparkles: New Features
+- [`6f2735f`](https://github.com/clouddrove/terraform-aws-vpc/commit/6f2735fa5657122dd4c6e61375d38073ba6f4ceb) - updated tfsec.yml file *(commit by [@vibhutigoyal](https://github.com/vibhutigoyal))*
+- [`fcf15d1`](https://github.com/clouddrove/terraform-aws-vpc/commit/fcf15d1e75c6b7f44ba5a8d2742586b21c293375) - updated changelog.yml name *(commit by [@vibhutigoyal](https://github.com/vibhutigoyal))*
+- [`6793df2`](https://github.com/clouddrove/terraform-aws-vpc/commit/6793df265367191319be1c3b2946f8c11d823510) - updated changelog.yml name and file *(commit by [@vibhutigoyal](https://github.com/vibhutigoyal))*
+- [`0df9c4d`](https://github.com/clouddrove/terraform-aws-vpc/commit/0df9c4d9c34598f500340ea99f509ce4c83b4a49) - add deepsource & added assignees,reviewer in dependabot *(commit by [@Tanveer143s](https://github.com/Tanveer143s))*
+
+
 ## [v1.3.0] - 2022-12-28
 ### :bug: Bug Fixes
 - [`da3fdc9`](https://github.com/clouddrove/terraform-aws-vpc/commit/da3fdc9fbcde60c8f07cf3235ddb0b1f73842a0c) - Updated terraform versions.
@@ -88,3 +96,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [v0.15.0]: https://github.com/clouddrove/terraform-aws-vpc/compare/0.14.0...0.15.0
 [v0.15.1]: https://github.com/clouddrove/terraform-aws-vpc/compare/0.15.0...0.15.1
 [v1.3.0]:  https://github.com/clouddrove/terraform-aws-vpc/compare/0.15.1...1.3.0
+[1.3.1]: https://github.com/clouddrove/terraform-aws-vpc/compare/1.3.0...1.3.1
