@@ -232,7 +232,7 @@ resource "aws_default_network_acl" "default" {
   tags = merge(
     module.labels.tags,
     {
-      "Name" = format("%s-vpc_dhcp", module.labels.id)
+      "Name" = format("%s-vpc_nacl", module.labels.id)
     }
   )
 }
