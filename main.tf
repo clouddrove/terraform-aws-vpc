@@ -2,10 +2,12 @@
 # Description : This Script is used to create VPC, Internet Gateway and Flow log.
 # Copyright @ CloudDrove. All Right Reserved.
 
+####------------------------------------------------------------------------------
 #Module      : labels
 #Description : This terraform module is designed to generate consistent label names and tags
 #              for resources. You can use terraform-labels to implement a strict naming
 #              convention.
+####------------------------------------------------------------------------------
 module "labels" {
   source  = "clouddrove/labels/aws"
   version = "1.3.0"
@@ -16,10 +18,11 @@ module "labels" {
   label_order = var.label_order
   repository  = var.repository
 }
-
-#Module      : VPC
+###---------------------------------------------------------------------------------------
+#Resource    : VPC
 #Description : Terraform module to create VPC resource on AWS.
-
+## A VPC is a virtual network that closely resembles a traditional network that you'd operate in your own data center.
+###--------------------------------------------------------------------------------------------
 resource "aws_vpc" "default" {
   count = var.vpc_enabled ? 1 : 0
   cidr_block          = var.cidr_block
@@ -45,10 +48,10 @@ resource "aws_vpc" "default" {
     ]
   }
 }
-
-#Module       :VPC IPV4 CIDR BLOCK ASSOCIATION 
+####-------------------------------------------------------------------------------------
+#Resource     :VPC IPV4 CIDR BLOCK ASSOCIATION 
 #Description  :Provides a resource to associate additional IPv4 CIDR blocks with a VPC.
-
+####---------------------------------------------------------------------------------------
 resource "aws_vpc_ipv4_cidr_block_association" "default" {
 
   for_each   = toset(var.additional_cidr_block)
@@ -56,8 +59,11 @@ resource "aws_vpc_ipv4_cidr_block_association" "default" {
   cidr_block = each.key
 }
 
-#Module      : INTERNET GATEWAY
+####--------------------------------------------------------------------------------------
+#Resource    : INTERNET GATEWAY
 #Description : Terraform module which creates Internet Geteway resources on AWS
+#              An AWS Internet Gateway virtual router that enables communication between VPC and the internet
+####---------------------------------------------------------------------------------------
 resource "aws_internet_gateway" "default" {
   count = var.vpc_enabled ? 1 : 0
 
@@ -69,9 +75,11 @@ resource "aws_internet_gateway" "default" {
     }
   )
 }
-
-#Module      : EGRESS ONLY INTERNET GATEWAY
+#####------------------------------------------------------------------------------------------------
+#Resource    : EGRESS ONLY INTERNET GATEWAY
 #Description : Terraform module which creates EGRESS ONLY INTERNET GATEWAY resources on AWS
+#              An egress-only internet gateway provides outbound-only internet connectivity for resources within a VPC
+##---------------------------------------------------------------------------------------------------
 
 resource "aws_egress_only_internet_gateway" "default" {
   count = var.vpc_enabled && var.enabled_ipv6_egress_only_internet_gateway ? 1 : 0
@@ -80,8 +88,11 @@ resource "aws_egress_only_internet_gateway" "default" {
   tags   = module.labels.tags
 }
 
-#Module      : Default Security Group
-#Description : Ensure the default security group of every VPC restricts all traffic.
+###--------------------------------------------------------------------------------
+#Resource    : Default Security Group
+#Description : Ensure the default security group of every VPC restricts all traffic. 
+#              The default security group serves as a baseline security configuration within the VPC.             
+####----------------------------------------------------------------------------------
 resource "aws_default_security_group" "default" {
   count = var.vpc_enabled && var.restrict_default_sg == true ? 1 : 0
 
@@ -124,9 +135,12 @@ resource "aws_default_security_group" "default" {
     }
   )
 }
-#Module      : DEFAULT ROUTE TABLE
+###---------------------------------------------------------------------------------------
+#Resource    : DEFAULT ROUTE TABLE
 #Description : Provides a resource to manage a default route table of a VPC.
 #              This resource can manage the default route table of the default or a non-default VPC.
+#              Provides a resource to create an ASSOCIATION between gateway and routing table.
+##----------------------------------------------------------------------------------
 resource "aws_default_route_table" "default" {
   default_route_table_id = aws_vpc.default[0].default_route_table_id
 
@@ -148,9 +162,10 @@ resource "aws_default_route_table" "default" {
   
 }
 
-
-#Module      : VPC DHCP Option
+####--------------------------------------------------------------
+#Resource    : VPC DHCP Option
 #Description : Provides a VPC DHCP Options resource.
+####--------------------------------------------------------------
 resource "aws_vpc_dhcp_options" "vpc_dhcp" {
   count = var.vpc_enabled && var.enable_dhcp_options ? 1 : 0
 
@@ -174,10 +189,11 @@ resource "aws_vpc_dhcp_options_association" "this" {
   vpc_id          = join("", aws_vpc.default.*.id)
   dhcp_options_id = join("", aws_vpc_dhcp_options.vpc_dhcp.*.id)
 }
-
-#Module      : FLOW LOG
+##---------------------------------------------------------------------------------------------
+#Resource    : FLOW LOG
 #Description : Provides a VPC/Subnet/ENI Flow Log to capture IP traffic for a
 #              specific network interface, subnet, or VPC. Logs are sent to S3 Bucket.
+##---------------------------------------------------------------------------------------------
 resource "aws_flow_log" "vpc_flow_log" {
   count = var.vpc_enabled && var.enable_flow_log == true ? 1 : 0
 
@@ -187,10 +203,12 @@ resource "aws_flow_log" "vpc_flow_log" {
   vpc_id               = join("", aws_vpc.default.*.id)
   tags                 = module.labels.tags
 }
+##----------------------------------------------------------------------------------------------------
+#Resource      : DEFAULT NETWORK ACL
+## Provides an network ACL resource. You might set up network ACLs with rules
+## similar to your security groups in order to add an additional layer of security to your VPC.
+##-------------------------------------------------------------------------------------------------------
 
-#Module        : DEFAULT NETWORK ACL
-#Description   : Provides a resource to manage a VPC's default network ACL.
-#                This resource can manage the default network ACL of the default or a non-default VPC.
 resource "aws_default_network_acl" "default" {
   default_network_acl_id = aws_vpc.default[0].default_network_acl_id
 
