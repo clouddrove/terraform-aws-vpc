@@ -209,42 +209,12 @@ variable "ipv6_cidr_block_network_border_group" {
   default     = null
   description = "Set this to restrict advertisement of public addresses to a specific Network Border Group such as a LocalZone."
 }
-
-variable "aws_default_route_table_enabled" {
-  type        = bool
-  default     = false
-   description = "A boolean flag to enable/disable Default Route Table in the VPC."
-}
-
-variable "default_route_table_no_routes" {
-  type        = bool
-  default     = false
-  description = <<-EOT
-    When `true`, manage the default route table and remove all routes, disabling all ingress and egress.
-    When `false`, do not mange the default route table, allowing it to be managed by another component.
-    EOT
-}
-variable "default_security_group_deny_all" {
-  type        = bool
-  default     = true
-  description = <<-EOT
-    When `true`, manage the default security group and remove all rules, disabling all ingress and egress.
-    When `false`, do not manage the default security group, allowing it to be managed by another component.
-    EOT
-}
-variable "default_network_acl_deny_all" {
-  type        = bool
-  default     = false
-   description = <<-EOT
-    When `true`, manage the default network acl and remove all rules, disabling all ingress and egress.
-    When `false`, do not mange the default networking acl, allowing it to be managed by another component.
-    EOT
-}
 variable "aws_default_route_table" {
   type        = bool
   default     = true
   description = "A boolean flag to enable/disable Default Route Table in the VPC."
 }
+
 variable "aws_default_network_acl" {
   type        = bool
   default     = true
