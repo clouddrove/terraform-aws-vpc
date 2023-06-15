@@ -25,8 +25,6 @@ module "vpc" {
   dhcp_options_domain_name                  = "service.consul"
   dhcp_options_domain_name_servers          = ["127.0.0.1", "10.10.0.2"]
   enabled_ipv6_egress_only_internet_gateway = true
-
-  default_security_group_deny_all = true
-  default_route_table_no_routes   = false
-  default_network_acl_deny_all    = false
+  aws_default_route_table                   = false
+  aws_default_network_acl                   = false
 }

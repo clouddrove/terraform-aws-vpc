@@ -212,7 +212,7 @@ variable "ipv6_cidr_block_network_border_group" {
 
 variable "aws_default_route_table_enabled" {
   type        = bool
-  default     = true
+  default     = false
    description = "A boolean flag to enable/disable Default Route Table in the VPC."
 }
 
@@ -239,4 +239,14 @@ variable "default_network_acl_deny_all" {
     When `true`, manage the default network acl and remove all rules, disabling all ingress and egress.
     When `false`, do not mange the default networking acl, allowing it to be managed by another component.
     EOT
+}
+variable "aws_default_route_table" {
+  type        = bool
+  default     = true
+  description = "A boolean flag to enable/disable Default Route Table in the VPC."
+}
+variable "aws_default_network_acl" {
+  type        = bool
+  default     = true
+  description = "A boolean flag to enable/disable Default Network acl in the VPC."
 }

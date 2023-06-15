@@ -135,13 +135,14 @@ resource "aws_default_security_group" "default" {
     }
   )
 }
-###---------------------------------------------------------------------------------------
-#Resource    : DEFAULT ROUTE TABLE
-#Description : Provides a resource to manage a default route table of a VPC.
+##---------------------------------------------------------------------------------------
+# Resource    : DEFAULT ROUTE TABLE
+# Description : Provides a resource to manage a default route table of a VPC.
 #              This resource can manage the default route table of the default or a non-default VPC.
 #              Provides a resource to create an ASSOCIATION between gateway and routing table.
-##----------------------------------------------------------------------------------
-resource "aws_default_route_table" "default" {
+# #----------------------------------------------------------------------------------
+resource "aws_default_route_table" "default" { 
+  count = var.vpc_enabled && var.aws_default_route_table ? 1 : 0
   default_route_table_id = aws_vpc.default[0].default_route_table_id
 
   route {
@@ -155,10 +156,9 @@ resource "aws_default_route_table" "default" {
     tags = merge(
       module.labels.tags,
     {
-        "Name" = format("%s-default_rt", module.labels.id)
+        "Name" = format("%s-default-rt", module.labels.id)
     }
   )
-
   
 }
 
@@ -178,7 +178,7 @@ resource "aws_vpc_dhcp_options" "vpc_dhcp" {
   tags = merge(
     module.labels.tags,
     {
-      "Name" = format("%s-vpc_dhcp", module.labels.id)
+      "Name" = format("%s-vpc-dhcp", module.labels.id)
     }
   )
 }
@@ -210,6 +210,7 @@ resource "aws_flow_log" "vpc_flow_log" {
 ##-------------------------------------------------------------------------------------------------------
 
 resource "aws_default_network_acl" "default" {
+  count = var.vpc_enabled && var.aws_default_network_acl ? 1 : 0
   default_network_acl_id = aws_vpc.default[0].default_network_acl_id
 
   ingress {
@@ -232,7 +233,7 @@ resource "aws_default_network_acl" "default" {
   tags = merge(
     module.labels.tags,
     {
-      "Name" = format("%s-vpc_nacl", module.labels.id)
+      "Name" = format("%s-nacl", module.labels.id)
     }
   )
 }
