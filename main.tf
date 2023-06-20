@@ -189,6 +189,41 @@ resource "aws_vpc_dhcp_options_association" "this" {
   vpc_id          = join("", aws_vpc.default.*.id)
   dhcp_options_id = join("", aws_vpc_dhcp_options.vpc_dhcp.*.id)
 }
+####--------------------------------------------------------------
+#Resource    : kms key
+#Description : Provides a kms key resource.
+#              it create and control the cryptographic keys that are used to protect your data.
+####-------------------------------------------------------------- 
+resource "aws_kms_key" "kms" {
+  count = var.enable_flow_log == true ? 1 : 0
+  deletion_window_in_days = 10
+}
+
+####------------------------------------------------------------------------------
+#Resource    : s3 bucket
+#Description : Provides a s3 bucket resource.
+#              S3 bucket is a public cloud storage resource available in AWS.
+####------------------------------------------------------------------------------
+resource "aws_s3_bucket" "mybucket" {
+  count = var.enable_flow_log == true ? 1 : 0
+  bucket = var.flow_logs_bucket_name
+}
+####------------------------------------------------------------------------------
+# Resource : s3 bucket server side encryption configuration
+# Description : Provides a S3 bucket server-side encryption configuration resource.
+####-------------------------------------------------------------------------------
+resource "aws_s3_bucket_server_side_encryption_configuration" "example" {
+  count = var.enable_flow_log == true ? 1 : 0
+  bucket = aws_s3_bucket.mybucket[0].id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      kms_master_key_id = aws_kms_key.kms[0].arn
+      sse_algorithm     = "aws:kms"
+    }
+  }
+}
+
 ##---------------------------------------------------------------------------------------------
 #Resource    : FLOW LOG
 #Description : Provides a VPC/Subnet/ENI Flow Log to capture IP traffic for a
@@ -197,12 +232,15 @@ resource "aws_vpc_dhcp_options_association" "this" {
 resource "aws_flow_log" "vpc_flow_log" {
   count = var.vpc_enabled && var.enable_flow_log == true ? 1 : 0
 
-  log_destination      = var.s3_bucket_arn
+  log_destination      = join("", aws_s3_bucket.mybucket.*.arn)
   log_destination_type = "s3"
   traffic_type         = var.traffic_type
   vpc_id               = join("", aws_vpc.default.*.id)
   tags                 = module.labels.tags
 }
+
+
+
 ##----------------------------------------------------------------------------------------------------
 #Resource      : DEFAULT NETWORK ACL
 ## Provides an network ACL resource. You might set up network ACLs with rules

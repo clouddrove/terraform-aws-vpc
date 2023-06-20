@@ -100,7 +100,7 @@ variable "dns_support_enabled" {
 #Description : Terraform flow log module variables.
 variable "enable_flow_log" {
   type        = bool
-  default     = false
+  default     = true
   description = "Enable vpc_flow_log logs."
 }
 
@@ -141,8 +141,6 @@ variable "ipv6_netmask_length" {
   default     = null
   description = "The netmask length of the IPv4 CIDR you want to allocate to this VPC. Requires specifying a ipv6_ipam_pool_id"
 }
-
-
 
 variable "default_security_group_ingress" {
   type        = list(map(string))
@@ -219,4 +217,10 @@ variable "aws_default_network_acl" {
   type        = bool
   default     = true
   description = "A boolean flag to enable/disable Default Network acl in the VPC."
+}
+
+variable "flow_logs_bucket_name" {
+  type = string
+  default = ""
+  description = "Name  (e.g. `mybucket` or `bucket101`)."
 }
