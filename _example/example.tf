@@ -19,7 +19,7 @@ module "vpc" {
 
   vpc_enabled                               = true
   cidr_block                                = "10.0.0.0/16"
-  enable_flow_log                           = true
+  enable_flow_log                           = false
   flow_logs_bucket_name                     = "vpc-flow-logs-bucket"
   additional_cidr_block                     = ["172.3.0.0/16", "172.2.0.0/16"]
   enable_dhcp_options                       = false

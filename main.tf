@@ -208,7 +208,15 @@ resource "aws_s3_bucket" "mybucket" {
   count = var.enable_flow_log == true ? 1 : 0
   bucket = var.flow_logs_bucket_name
   acl = "private"
-  
+}
+resource "aws_s3_bucket_public_access_block" "example" {
+  count = var.enable_flow_log == true ? 1 : 0
+  bucket = aws_s3_bucket.mybucket[0].id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
 }
 ####------------------------------------------------------------------------------
 # Resource : s3 bucket server side encryption configuration
@@ -217,6 +225,7 @@ resource "aws_s3_bucket" "mybucket" {
 resource "aws_s3_bucket_server_side_encryption_configuration" "example" {
   count = var.enable_flow_log == true ? 1 : 0
   bucket = aws_s3_bucket.mybucket[0].id
+  
 
   rule {
     apply_server_side_encryption_by_default {
