@@ -97,7 +97,10 @@ Here is an example of how you can use this module in your inventory structure:
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | additional\_cidr\_block | List of secondary CIDR blocks of the VPC. | `list(string)` | `[]` | no |
+| additional\_ipv6\_cidr\_block | List of secondary CIDR blocks of the VPC. | `list(string)` | `[]` | no |
 | attributes | Additional attributes (e.g. `1`). | `list(any)` | `[]` | no |
+| aws\_default\_network\_acl | A boolean flag to enable/disable Default Network acl in the VPC. | `bool` | `true` | no |
+| aws\_default\_route\_table | A boolean flag to enable/disable Default Route Table in the VPC. | `bool` | `true` | no |
 | cidr\_block | CIDR for the VPC. | `string` | `""` | no |
 | default\_security\_group\_egress | List of maps of egress rules to set on the default security group | `list(map(string))` | `[]` | no |
 | default\_security\_group\_ingress | List of maps of ingress rules to set on the default security group | `list(map(string))` | `[]` | no |
@@ -106,15 +109,21 @@ Here is an example of how you can use this module in your inventory structure:
 | dhcp\_options\_netbios\_name\_servers | Specify a list of netbios servers for DHCP options set (requires enable\_dhcp\_options set to true) | `list(string)` | `[]` | no |
 | dhcp\_options\_netbios\_node\_type | Specify netbios node\_type for DHCP options set (requires enable\_dhcp\_options set to true) | `string` | `""` | no |
 | dhcp\_options\_ntp\_servers | Specify a list of NTP servers for DHCP options set (requires enable\_dhcp\_options set to true) | `list(string)` | `[]` | no |
+| dns\_hostnames\_enabled | A boolean flag to enable/disable DNS hostnames in the VPC. | `bool` | `true` | no |
+| dns\_support\_enabled | A boolean flag to enable/disable DNS support in the VPC. | `bool` | `true` | no |
 | enable\_dhcp\_options | Should be true if you want to specify a DHCP options set with a custom domain name, DNS servers, NTP servers, netbios servers, and/or netbios server type | `bool` | `false` | no |
-| enable\_dns\_hostnames | A boolean flag to enable/disable DNS hostnames in the VPC. | `bool` | `true` | no |
-| enable\_dns\_support | A boolean flag to enable/disable DNS support in the VPC. | `bool` | `true` | no |
-| enable\_flow\_log | Enable vpc\_flow\_log logs. | `bool` | `false` | no |
+| enable\_flow\_log | Enable vpc\_flow\_log logs. | `bool` | `true` | no |
 | enabled\_ipv6\_egress\_only\_internet\_gateway | A boolean flag to enable/disable IPv6 Egress-Only Internet Gateway creation | `bool` | `false` | no |
 | environment | Environment (e.g. `prod`, `dev`, `staging`). | `string` | `""` | no |
+| flow\_logs\_bucket\_name | Name  (e.g. `mybucket` or `bucket101`). | `string` | `""` | no |
 | instance\_tenancy | A tenancy option for instances launched into the VPC. | `string` | `"default"` | no |
+| internet\_gateway\_enabled | A boolean flag to enable/disable INTERNET GATEWAY in the VPC. | `bool` | `true` | no |
 | ipv4\_ipam\_pool\_id | The ID of an IPv4 IPAM pool you want to use for allocating this VPC's CIDR. | `string` | `""` | no |
 | ipv4\_netmask\_length | The netmask length of the IPv4 CIDR you want to allocate to this VPC. Requires specifying a ipv4\_ipam\_pool\_id | `string` | `null` | no |
+| ipv6\_cidr\_block | IPv6 CIDR for the VPC. | `string` | `null` | no |
+| ipv6\_cidr\_block\_network\_border\_group | Set this to restrict advertisement of public addresses to a specific Network Border Group such as a LocalZone. | `string` | `null` | no |
+| ipv6\_ipam\_pool\_id | The ID of an IPv6 IPAM pool you want to use for allocating this VPC's CIDR. | `string` | `""` | no |
+| ipv6\_netmask\_length | The netmask length of the IPv4 CIDR you want to allocate to this VPC. Requires specifying a ipv6\_ipam\_pool\_id | `string` | `null` | no |
 | label\_order | Label order, e.g. `name`,`application`. | `list(any)` | `[]` | no |
 | managedby | ManagedBy, eg 'CloudDrove' | `string` | `"hello@clouddrove.com"` | no |
 | name | Name  (e.g. `app` or `cluster`). | `string` | `""` | no |
@@ -132,7 +141,10 @@ Here is an example of how you can use this module in your inventory structure:
 | arn | Amazon Resource Name (ARN) of VPC |
 | igw\_id | The ID of the Internet Gateway. |
 | ipv6\_cidr\_block | The IPv6 CIDR block. |
+| ipv6\_cidr\_block\_network\_border\_group | The IPv6 Network Border Group Zone name |
+| ipv6\_egress\_only\_igw\_id | The ID of the egress-only Internet Gateway |
 | tags | A mapping of tags to assign to the resource. |
+| vpc\_arn | The ARN of the VPC |
 | vpc\_cidr\_block | The CIDR block of the VPC. |
 | vpc\_default\_network\_acl\_id | The ID of the network ACL created by default on VPC creation. |
 | vpc\_default\_route\_table\_id | The ID of the route table created by default on VPC creation. |
