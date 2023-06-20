@@ -207,6 +207,8 @@ resource "aws_kms_key" "kms" {
 resource "aws_s3_bucket" "mybucket" {
   count = var.enable_flow_log == true ? 1 : 0
   bucket = var.flow_logs_bucket_name
+  acl = "private"
+  
 }
 ####------------------------------------------------------------------------------
 # Resource : s3 bucket server side encryption configuration
