@@ -67,6 +67,16 @@ variable "additional_cidr_block" {
   default     = []
   description = "	List of secondary CIDR blocks of the VPC."
 }
+variable "ipv6_cidr_block" {
+  type        = string
+  default     = null
+  description = "IPv6 CIDR for the VPC."
+}
+variable "additional_ipv6_cidr_block" {
+  type        = list(string)
+  default     = []
+  description = "	List of secondary CIDR blocks of the VPC."
+}
 
 variable "instance_tenancy" {
   type        = string
@@ -74,13 +84,13 @@ variable "instance_tenancy" {
   description = "A tenancy option for instances launched into the VPC."
 }
 
-variable "enable_dns_hostnames" {
+variable "dns_hostnames_enabled" {
   type        = bool
   default     = true
   description = "A boolean flag to enable/disable DNS hostnames in the VPC."
 }
 
-variable "enable_dns_support" {
+variable "dns_support_enabled" {
   type        = bool
   default     = true
   description = "A boolean flag to enable/disable DNS support in the VPC."
@@ -90,7 +100,7 @@ variable "enable_dns_support" {
 #Description : Terraform flow log module variables.
 variable "enable_flow_log" {
   type        = bool
-  default     = false
+  default     = true
   description = "Enable vpc_flow_log logs."
 }
 
@@ -118,6 +128,18 @@ variable "ipv4_netmask_length" {
   type        = string
   default     = null
   description = "The netmask length of the IPv4 CIDR you want to allocate to this VPC. Requires specifying a ipv4_ipam_pool_id"
+}
+variable "ipv6_ipam_pool_id" {
+  type        = string
+  default     = ""
+  description = "The ID of an IPv6 IPAM pool you want to use for allocating this VPC's CIDR."
+
+}
+
+variable "ipv6_netmask_length" {
+  type        = string
+  default     = null
+  description = "The netmask length of the IPv4 CIDR you want to allocate to this VPC. Requires specifying a ipv6_ipam_pool_id"
 }
 
 variable "default_security_group_ingress" {
@@ -168,9 +190,37 @@ variable "dhcp_options_netbios_node_type" {
   description = "Specify netbios node_type for DHCP options set (requires enable_dhcp_options set to true)"
 }
 
+variable "internet_gateway_enabled" {
+  type        = bool
+  default     = true
+  description = "A boolean flag to enable/disable INTERNET GATEWAY in the VPC."
+}
 
 variable "enabled_ipv6_egress_only_internet_gateway" {
   type        = bool
   default     = false
   description = "A boolean flag to enable/disable IPv6 Egress-Only Internet Gateway creation"
+
+}
+variable "ipv6_cidr_block_network_border_group" {
+  type        = string
+  default     = null
+  description = "Set this to restrict advertisement of public addresses to a specific Network Border Group such as a LocalZone."
+}
+variable "aws_default_route_table" {
+  type        = bool
+  default     = true
+  description = "A boolean flag to enable/disable Default Route Table in the VPC."
+}
+
+variable "aws_default_network_acl" {
+  type        = bool
+  default     = true
+  description = "A boolean flag to enable/disable Default Network acl in the VPC."
+}
+
+variable "flow_logs_bucket_name" {
+  type = string
+  default = ""
+  description = "Name  (e.g. `mybucket` or `bucket101`)."
 }
