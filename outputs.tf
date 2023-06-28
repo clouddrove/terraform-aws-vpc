@@ -4,6 +4,7 @@ output "vpc_id" {
   value       = join("", aws_vpc.default.*.id)
   description = "The ID of the VPC."
 }
+
 output "vpc_arn" {
   value       = join("", aws_vpc.default.*.arn)
   description = "The ARN of the VPC"
@@ -54,17 +55,19 @@ output "tags" {
   description = "A mapping of tags to assign to the resource."
 }
 
+####-------------------------------------------------------------------------------------
 #Module      : INTERNET GATEWAY
 #Description : Terraform internet gateway module output variables.
+####--------------------------------------------------------------------------------------
 output "igw_id" {
   value       = join("", aws_internet_gateway.default.*.id)
   description = "The ID of the Internet Gateway."
 }
+
 output "ipv6_egress_only_igw_id" {
   value       = join("", aws_egress_only_internet_gateway.default.*.id)
   description = "The ID of the egress-only Internet Gateway"
 }
-
 
 output "arn" {
   value       = join("", aws_flow_log.vpc_flow_log.*.arn)
