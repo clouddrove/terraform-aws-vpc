@@ -16,10 +16,10 @@ github_repo: clouddrove/terraform-aws-vpc
 # Badges to display
 badges:
   - name: "Latest Release"
-    image: "https://img.shields.io/github/release/clouddrove/terraform-module-template.svg"
-    url: "https://github.com/clouddrove/terraform-module-template/releases/latest"
+    image: "https://img.shields.io/github/release/clouddrove/terraform-module-vpc.svg"
+    url: "https://github.com/clouddrove/terraform-module-vpc/releases/latest"
   - name: "tfsec"
-    image: "https://github.com/clouddrove/terraform-module-template/actions/workflows/tfsec.yml/badge.svg"
+    image: "https://github.com/clouddrove/terraform-module-vpc/actions/workflows/tfsec.yml/badge.svg"
     url: "https://github.com/clouddrove/terraform-aws-vpc/actions/workflows/tfsec.yml/badge.svg"
   - name: "Licence"
     image: "https://img.shields.io/badge/License-APACHE-blue.svg"
