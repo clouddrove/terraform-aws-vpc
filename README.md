@@ -8,22 +8,19 @@
 </h1>
 
 <p align="center" style="font-size: 1.2rem;"> 
-    Terraform module to create VPC resource on AWS.
+    Terraform module vpc to create new modules using this as baseline
      </p>
 
 <p align="center">
 
-<a href="https://www.terraform.io">
-  <img src="https://img.shields.io/badge/Terraform-v1.1.7-green" alt="Terraform">
+<a href="https://github.com/clouddrove/terraform-module-vpc/releases/latest">
+  <img src="https://img.shields.io/github/release/clouddrove/terraform-module-vpc.svg" alt="Latest Release">
+</a>
+<a href="https://github.com/clouddrove/terraform-aws-vpc/actions/workflows/tfsec.yml/badge.svg">
+  <img src="https://github.com/clouddrove/terraform-module-vpc/actions/workflows/tfsec.yml/badge.svg" alt="tfsec">
 </a>
 <a href="LICENSE.md">
   <img src="https://img.shields.io/badge/License-APACHE-blue.svg" alt="Licence">
-</a>
-<a href="https://github.com/clouddrove/terraform-aws-vpc/actions/workflows/tfsec.yml">
-  <img src="https://github.com/clouddrove/terraform-aws-vpc/actions/workflows/tfsec.yml/badge.svg" alt="tfsec">
-</a>
-<a href="https://github.com/clouddrove/terraform-aws-vpc/actions/workflows/terraform.yml">
-  <img src="https://github.com/clouddrove/terraform-aws-vpc/actions/workflows/terraform.yml/badge.svg" alt="static-checks">
 </a>
 
 
@@ -74,16 +71,21 @@ This module has a few dependencies:
 **IMPORTANT:** Since the `master` branch used in `source` varies based on new modifications, we suggest that you use the release versions [here](https://github.com/clouddrove/terraform-aws-vpc/releases).
 
 
-### Simple Example
-Here is an example of how you can use this module in your inventory structure:
+Here are some examples of how you can use this module in your inventory structure:
   ```hcl
   module "vpc" {
-      source      = "clouddrove/vpc/aws"
-      version     = "1.3.0"
-      name        = "vpc"
-      environment = "test"
-      label_order = ["name", "environment"]
-      cidr_block  = "10.0.0.0/16"
+    source      = "clouddrove/vpc/aws"
+    version     = "1.3.1"
+
+    name        = "vpc"
+    environment = "example"
+    label_order = ["name", "environment"]
+
+    cidr_block                       = "10.0.0.0/16"
+    flow_logs_bucket_name            = "vpc-flow-logs-bucket"
+    additional_cidr_block            = ["172.3.0.0/16", "172.2.0.0/16"]
+    dhcp_options_domain_name         = "service.consul"
+    dhcp_options_domain_name_servers = ["127.0.0.1", "10.10.0.2"]
     }
   ```
 
@@ -98,13 +100,14 @@ Here is an example of how you can use this module in your inventory structure:
 |------|-------------|------|---------|:--------:|
 | additional\_cidr\_block | List of secondary CIDR blocks of the VPC. | `list(string)` | `[]` | no |
 | additional\_ipv6\_cidr\_block | List of secondary CIDR blocks of the VPC. | `list(string)` | `[]` | no |
+| assign\_generated\_ipv6\_cidr\_block | Determines whether IPAM pool is used for CIDR allocation | `bool` | `true` | no |
 | attributes | Additional attributes (e.g. `1`). | `list(any)` | `[]` | no |
 | aws\_default\_network\_acl | A boolean flag to enable/disable Default Network acl in the VPC. | `bool` | `true` | no |
 | aws\_default\_route\_table | A boolean flag to enable/disable Default Route Table in the VPC. | `bool` | `true` | no |
 | cidr\_block | CIDR for the VPC. | `string` | `""` | no |
 | default\_security\_group\_egress | List of maps of egress rules to set on the default security group | `list(map(string))` | `[]` | no |
 | default\_security\_group\_ingress | List of maps of ingress rules to set on the default security group | `list(map(string))` | `[]` | no |
-| dhcp\_options\_domain\_name | Specifies DNS name for DHCP options set (requires enable\_dhcp\_options set to true) | `string` | `""` | no |
+| dhcp\_options\_domain\_name | Specifies DNS name for DHCP options set (requires enable\_dhcp\_options set to true) | `string` | `"service.consul"` | no |
 | dhcp\_options\_domain\_name\_servers | Specify a list of DNS server addresses for DHCP options set, default to AWS provided (requires enable\_dhcp\_options set to true) | `list(string)` | <pre>[<br>  "AmazonProvidedDNS"<br>]</pre> | no |
 | dhcp\_options\_netbios\_name\_servers | Specify a list of netbios servers for DHCP options set (requires enable\_dhcp\_options set to true) | `list(string)` | `[]` | no |
 | dhcp\_options\_netbios\_node\_type | Specify netbios node\_type for DHCP options set (requires enable\_dhcp\_options set to true) | `string` | `""` | no |
@@ -112,8 +115,9 @@ Here is an example of how you can use this module in your inventory structure:
 | dns\_hostnames\_enabled | A boolean flag to enable/disable DNS hostnames in the VPC. | `bool` | `true` | no |
 | dns\_support\_enabled | A boolean flag to enable/disable DNS support in the VPC. | `bool` | `true` | no |
 | enable\_dhcp\_options | Should be true if you want to specify a DHCP options set with a custom domain name, DNS servers, NTP servers, netbios servers, and/or netbios server type | `bool` | `false` | no |
-| enable\_flow\_log | Enable vpc\_flow\_log logs. | `bool` | `true` | no |
-| enabled\_ipv6\_egress\_only\_internet\_gateway | A boolean flag to enable/disable IPv6 Egress-Only Internet Gateway creation | `bool` | `false` | no |
+| enable\_flow\_log | Enable vpc\_flow\_log logs. | `bool` | `false` | no |
+| enable\_network\_address\_usage\_metrics | Determines whether network address usage metrics are enabled for the VPC | `bool` | `null` | no |
+| enabled\_ipv6\_egress\_only\_internet\_gateway | A boolean flag to enable/disable IPv6 Egress-Only Internet Gateway creation | `bool` | `true` | no |
 | environment | Environment (e.g. `prod`, `dev`, `staging`). | `string` | `""` | no |
 | flow\_logs\_bucket\_name | Name  (e.g. `mybucket` or `bucket101`). | `string` | `""` | no |
 | instance\_tenancy | A tenancy option for instances launched into the VPC. | `string` | `"default"` | no |
