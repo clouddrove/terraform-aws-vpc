@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - master
-
 jobs:
   readme-create:
     name: 'readme-create'
@@ -24,7 +23,6 @@ jobs:
           github_token: '${{ secrets.GITHUB}}'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN}}
-
 
       - name: 'pre-commit check errors'
         uses: pre-commit/action@v3.0.0

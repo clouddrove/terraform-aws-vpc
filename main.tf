@@ -4,7 +4,7 @@
 
 ####------------------------------------------------------------------------------
 #Module      : labels
-#Description : This terraform module is designed to generate consistent label names and tags
+#Description : This terraform +module is designed to generate consistent label names and tags
 #              for resources. You can use terraform-labels to implement a strict naming
 #              convention.
 ####------------------------------------------------------------------------------
@@ -205,10 +205,28 @@ resource "aws_kms_key" "kms" {
 ####------------------------------------------------------------------------------
 resource "aws_s3_bucket" "mybucket" {
   count = var.enable_flow_log == true ? 1 : 0
-
   bucket = var.flow_logs_bucket_name
+  #acl    = "private"
+}
+
+resource "aws_s3_bucket_ownership_controls" "example" {
+  count = var.enable_flow_log == true ? 1 : 0
+
+  bucket = join("", aws_s3_bucket.mybucket.*.id)
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+resource "aws_s3_bucket_acl" "example" {
+  count = var.enable_flow_log == true ? 1 : 0
+
+  depends_on = [aws_s3_bucket_ownership_controls.example]
+
+  bucket = join("", aws_s3_bucket.mybucket.*.id)
   acl    = "private"
 }
+
 resource "aws_s3_bucket_public_access_block" "example" {
   count = var.enable_flow_log == true ? 1 : 0
 
