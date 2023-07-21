@@ -30,21 +30,9 @@ variable "managedby" {
   description = "ManagedBy, eg 'CloudDrove'"
 }
 
-variable "attributes" {
-  type        = list(any)
-  default     = []
-  description = "Additional attributes (e.g. `1`)."
-}
-
-variable "tags" {
-  type        = map(any)
-  default     = {}
-  description = "Additional tags (e.g. map(`BusinessUnit`,`XYZ`)."
-}
-
 #Module      : VPC
 #Description : Terraform VPC module variables.
-variable "vpc_enabled" {
+variable "enable" {
   type        = bool
   default     = true
   description = "Flag to control the vpc creation."
@@ -74,12 +62,6 @@ variable "ipv6_cidr_block" {
   description = "IPv6 CIDR for the VPC."
 }
 
-variable "additional_ipv6_cidr_block" {
-  type        = list(string)
-  default     = []
-  description = "	List of secondary CIDR blocks of the VPC."
-}
-
 variable "instance_tenancy" {
   type        = string
   default     = "default"
@@ -104,13 +86,6 @@ variable "enable_flow_log" {
   type        = bool
   default     = false
   description = "Enable vpc_flow_log logs."
-}
-
-variable "s3_bucket_arn" {
-  type        = string
-  default     = ""
-  description = "S3 ARN for vpc logs."
-  sensitive   = true
 }
 
 variable "traffic_type" {
@@ -191,12 +166,6 @@ variable "dhcp_options_netbios_node_type" {
   description = "Specify netbios node_type for DHCP options set (requires enable_dhcp_options set to true)"
 }
 
-variable "internet_gateway_enabled" {
-  type        = bool
-  default     = true
-  description = "A boolean flag to enable/disable INTERNET GATEWAY in the VPC."
-}
-
 variable "enabled_ipv6_egress_only_internet_gateway" {
   type        = bool
   default     = true
@@ -235,6 +204,106 @@ variable "aws_default_network_acl" {
 
 variable "flow_logs_bucket_name" {
   type        = string
-  default     = ""
+  default     = null
   description = "Name  (e.g. `mybucket` or `bucket101`)."
+}
+
+variable "ipam_pool_enable" {
+  type        = bool
+  default     = false
+  description = "Flag to be set true when using ipam for cidr."
+}
+
+variable "default_route_table_routes" {
+  type        = list(map(string))
+  default     = []
+  description = "Configuration block of routes."
+}
+
+variable "default_network_acl_ingress" {
+  description = "List of maps of ingress rules to set on the Default Network ACL"
+  type        = list(map(string))
+  default = [
+    {
+      rule_no    = 100
+      action     = "allow"
+      from_port  = 0
+      to_port    = 0
+      protocol   = "-1"
+      cidr_block = "0.0.0.0/0"
+    },
+    {
+      rule_no         = 101
+      action          = "allow"
+      from_port       = 0
+      to_port         = 0
+      protocol        = "-1"
+      ipv6_cidr_block = "::/0"
+    },
+  ]
+}
+
+variable "default_network_acl_egress" {
+  description = "List of maps of egress rules to set on the Default Network ACL"
+  type        = list(map(string))
+  default = [
+    {
+      rule_no    = 100
+      action     = "allow"
+      from_port  = 0
+      to_port    = 0
+      protocol   = "-1"
+      cidr_block = "0.0.0.0/0"
+    },
+    {
+      rule_no         = 101
+      action          = "allow"
+      from_port       = 0
+      to_port         = 0
+      protocol        = "-1"
+      ipv6_cidr_block = "::/0"
+    },
+  ]
+}
+
+variable "flow_log_destination_type" {
+  type        = string
+  default     = "cloud-watch-logs"
+  description = "Type of flow log destination. Can be s3 or cloud-watch-logs"
+}
+
+variable "flow_log_log_format" {
+  type        = string
+  default     = null
+  description = "The fields to include in the flow log record, in the order in which they should appear"
+}
+
+variable "flow_log_file_format" {
+  type        = string
+  default     = null
+  description = "(Optional) The format for the flow log. Valid values: `plain-text`, `parquet`"
+}
+
+variable "flow_log_hive_compatible_partitions" {
+  type        = bool
+  default     = false
+  description = "(Optional) Indicates whether to use Hive-compatible prefixes for flow logs stored in Amazon S3"
+}
+
+variable "flow_log_per_hour_partition" {
+  type        = bool
+  default     = false
+  description = "(Optional) Indicates whether to partition the flow log per hour. This reduces the cost and response time for queries"
+}
+
+variable "flow_log_max_aggregation_interval" {
+  type        = number
+  default     = 600
+  description = "The maximum interval of time during which a flow of packets is captured and aggregated into a flow log record. Valid Values: `60` seconds or `600` seconds"
+}
+
+variable "flow_log_traffic_type" {
+  type        = string
+  default     = "ALL"
+  description = "The type of traffic to capture. Valid values: ACCEPT, REJECT, ALL"
 }
