@@ -88,12 +88,6 @@ variable "enable_flow_log" {
   description = "Enable vpc_flow_log logs."
 }
 
-variable "traffic_type" {
-  type        = string
-  default     = "ALL"
-  description = "Type of traffic to capture. Valid values: ACCEPT,REJECT, ALL."
-}
-
 variable "ipv4_ipam_pool_id" {
   type        = string
   default     = ""
@@ -193,7 +187,7 @@ variable "enable_network_address_usage_metrics" {
 variable "assign_generated_ipv6_cidr_block" {
   type        = bool
   default     = true
-  description = "Determines whether IPAM pool is used for CIDR allocation"
+  description = "Requests an Amazon-provided IPv6 CIDR block with a /56 prefix length for the VPC. You cannot specify the range of IP addresses, or the size of the CIDR block. Conflicts with ipv6_ipam_pool_id"
 }
 
 variable "aws_default_network_acl" {
@@ -348,4 +342,10 @@ variable "s3_sse_algorithm" {
   type        = string
   default     = "aws:kms"
   description = "Server-side encryption algorithm to use. Valid values are AES256 and aws:kms"
+}
+
+variable "enable_key_rotation" {
+  type        = bool
+  default     = true
+  description = "Specifies whether key rotation is enabled. Defaults to true(security best practice)"
 }

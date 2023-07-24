@@ -192,6 +192,7 @@ data "aws_region" "current" {}
 resource "aws_kms_key" "kms" {
   count                   = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null ? 1 : 0
   deletion_window_in_days = var.kms_key_deletion_window
+  enable_key_rotation     = var.enable_key_rotation
 }
 
 resource "aws_kms_alias" "kms-alias" {
