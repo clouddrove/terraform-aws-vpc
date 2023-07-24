@@ -1,12 +1,9 @@
-##-----------------------------------------------------------------------------
-## Managed By : CloudDrove
-## Description : This Script is used to create VPC, Internet Gateway and Flow log.
-## Copyright @ CloudDrove. All Right Reserved.
-##-----------------------------------------------------------------------------
+# Managed By : CloudDrove 
+# Copyright @ CloudDrove. All Right Reserved.
 
-##-----------------------------------------------------------------------------
-## Module      : labels
-## Description : This terraform module is designed to generate consistent label names and tags for resources. You can use terraform-labels to implement a strict naming convention.
+
+##----------------------------------------------------------------------------- 
+## Labels module callled that will be used for naming and tags.   
 ##-----------------------------------------------------------------------------
 module "labels" {
   source      = "clouddrove/labels/aws"
@@ -18,9 +15,7 @@ module "labels" {
   repository  = var.repository
 }
 ##-----------------------------------------------------------------------------
-## Resource    : VPC
-## Description : Terraform module to create VPC resource on AWS.
-## A VPC is a virtual network that closely resembles a traditional network that you'd operate in your own data center.
+## Below resources will deploy VPC and its components. 
 ##-----------------------------------------------------------------------------
 resource "aws_vpc" "default" {
   count                                = var.enable ? 1 : 0
@@ -46,20 +41,13 @@ resource "aws_vpc" "default" {
     ]
   }
 }
-##-----------------------------------------------------------------------------
-## Resource     :VPC IPV4 CIDR BLOCK ASSOCIATION
-## Description  :Provides a resource to associate additional IPv4 CIDR blocks with a VPC.
-##-----------------------------------------------------------------------------
+
 resource "aws_vpc_ipv4_cidr_block_association" "default" {
   for_each   = toset(var.additional_cidr_block)
   vpc_id     = join("", aws_vpc.default.*.id)
   cidr_block = each.key
 }
-##-----------------------------------------------------------------------------
-## Resource    : INTERNET GATEWAY
-## Description : Terraform module which creates Internet Geteway resources on AWS.
-##               An AWS Internet Gateway virtual router that enables communication between VPC and the internet
-##-----------------------------------------------------------------------------
+
 resource "aws_internet_gateway" "default" {
   count  = var.enable ? 1 : 0
   vpc_id = join("", aws_vpc.default.*.id)
@@ -70,20 +58,14 @@ resource "aws_internet_gateway" "default" {
     }
   )
 }
-##-----------------------------------------------------------------------------
-## Resource    : EGRESS ONLY INTERNET GATEWAY
-## Description : Terraform module which creates EGRESS ONLY INTERNET GATEWAY resources on AWS
-##               An egress-only internet gateway provides outbound-only internet connectivity for resources within a VPC
-##-----------------------------------------------------------------------------
+
 resource "aws_egress_only_internet_gateway" "default" {
   count  = var.enable && var.enabled_ipv6_egress_only_internet_gateway ? 1 : 0
   vpc_id = join("", aws_vpc.default.*.id)
   tags   = module.labels.tags
 }
 ##-----------------------------------------------------------------------------
-## Resource    : Default Security Group
-## Description : Ensure the default security group of every VPC restricts all traffic.
-##               The default security group serves as a baseline security configuration within the VPC.
+## Below resource is used to create default security group for vpc communication. 
 ##-----------------------------------------------------------------------------
 resource "aws_default_security_group" "default" {
   count  = var.enable && var.restrict_default_sg == true ? 1 : 0
@@ -124,9 +106,7 @@ resource "aws_default_security_group" "default" {
   )
 }
 ##-----------------------------------------------------------------------------
-## Resource    : DEFAULT ROUTE TABLE
-## Description : Provides a resource to manage a default route table of a VPC.
-##               This resource can manage the default route table of the default or a non-default VPC.Provides a resource to create an ASSOCIATION between gateway and routing table.
+## Below resource will create default route table for vpc communication. 
 ##-----------------------------------------------------------------------------
 resource "aws_default_route_table" "default" {
   count                  = var.enable && var.aws_default_route_table ? 1 : 0
@@ -157,8 +137,7 @@ resource "aws_default_route_table" "default" {
   )
 }
 ##-----------------------------------------------------------------------------
-## Resource    : VPC DHCP Option
-## Description : Provides a VPC DHCP Options resource.
+## Below resource is used to configure vpc dhcp options. 
 ##-----------------------------------------------------------------------------
 resource "aws_vpc_dhcp_options" "vpc_dhcp" {
   count                = var.enable && var.enable_dhcp_options ? 1 : 0
@@ -182,9 +161,7 @@ resource "aws_vpc_dhcp_options_association" "this" {
 }
 
 ##-----------------------------------------------------------------------------
-## Resource    : kms key
-## Description : Provides a kms key resource.
-##               It create and control the cryptographic keys that are used to protect your data.
+## Below resource will create kms key. This key will used for encryption of flow logs stored in S3 bucket or cloudwatch log group. 
 ##-----------------------------------------------------------------------------
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
@@ -201,6 +178,10 @@ resource "aws_kms_alias" "kms-alias" {
   target_key_id = aws_kms_key.kms[0].key_id
 }
 
+##-----------------------------------------------------------------------------
+## Below resource will attach policy to above created kms key. The above created key require policy to be attached so that cloudwatch log group can access it. 
+## It will be only created when vpc flow logs are stored in cloudwatch log group. 
+##-----------------------------------------------------------------------------
 resource "aws_kms_key_policy" "example" {
   count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" ? 1 : 0
   key_id = aws_kms_key.kms[0].id
@@ -233,9 +214,7 @@ resource "aws_kms_key_policy" "example" {
 
 }
 ##-----------------------------------------------------------------------------
-## Resource    : s3 bucket
-## Description : Provides a S3 bucket resource.
-##               S3 bucket is a public cloud storage resource available in AWS.
+## Below resources will create S3 bucket and its components. This S3 bucket will be used to store vpc flow logs if "flow_log_destination_type" variable is set to "s3".
 ##-----------------------------------------------------------------------------
 resource "aws_s3_bucket" "mybucket" {
   count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
@@ -265,10 +244,7 @@ resource "aws_s3_bucket_public_access_block" "example" {
   ignore_public_acls      = true
   restrict_public_buckets = true
 }
-##-----------------------------------------------------------------------------
-## Resource : s3 bucket server side encryption configuration
-## Description : Provides a S3 bucket server-side encryption configuration resource.
-##-----------------------------------------------------------------------------
+
 resource "aws_s3_bucket_server_side_encryption_configuration" "example" {
   count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
   bucket = aws_s3_bucket.mybucket[0].id
@@ -280,8 +256,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "example" {
   }
 }
 ##-----------------------------------------------------------------------------
-## Cloudwatch Resource
-## VPC flow log will be send to cloudwatch log group if enable.
+## Below resources will create cloudwatch log group and its components. This cloudwatch log group will be used to store vpc flow logs if "flow_log_destination_type" variable is set to "cloud-watch-logs".
 ##-----------------------------------------------------------------------------
 resource "aws_cloudwatch_log_group" "flow_log" {
   count             = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" ? 1 : 0
@@ -340,8 +315,7 @@ data "aws_iam_policy_document" "vpc_flow_log_cloudwatch" {
   }
 }
 ##---------------------------------------------------------------------------------------------
-## Resource    : FLOW LOG
-## Description : Provides a VPC/Subnet/ENI Flow Log to capture IP traffic for a specific network interface, subnet, or VPC. Logs are sent to S3 Bucket.
+## Below resource will deploy vpc flow logs for vpc created above. VPC flow log can be stored in either S3 bucket or Cloudwatch log group, as per your requirement. 
 ##---------------------------------------------------------------------------------------------
 resource "aws_flow_log" "vpc_flow_log" {
   count                    = var.enable && var.enable_flow_log == true ? 1 : 0
@@ -364,8 +338,7 @@ resource "aws_flow_log" "vpc_flow_log" {
   tags = module.labels.tags
 }
 ##----------------------------------------------------------------------------------------------------
-## Resource      : DEFAULT NETWORK ACL
-## Provides an network ACL resource. You might set up network ACLs with rules similar to your security groups in order to add an additional layer of security to your VPC.
+## Below resource will deploy default network acl for vpc communication. 
 ##-------------------------------------------------------------------------------------------------------
 resource "aws_default_network_acl" "default" {
   count                  = var.enable && var.aws_default_network_acl ? 1 : 0
