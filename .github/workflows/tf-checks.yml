@@ -8,12 +8,12 @@ jobs:
   basic:
     uses: clouddrove/github-shared-workflows/.github/workflows/tf-checks.yml@master
     with:
-      working_directory: './_examples/basic/'
+      working_directory: './_example/basic/'
   cloudwatch:
     uses: clouddrove/github-shared-workflows/.github/workflows/tf-checks.yml@master
     with:
-      working_directory: './_examples/vpc-flow-logs-cloudwatch/'
+      working_directory: './_example/vpc-flow-logs-cloudwatch/'
   s3:
     uses: clouddrove/github-shared-workflows/.github/workflows/tf-checks.yml@master
     with:
-      working_directory: './_examples/vpc-flow-logs-s3/'
+      working_directory: './_example/vpc-flow-logs-s3/'
