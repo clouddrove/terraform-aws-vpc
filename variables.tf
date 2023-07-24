@@ -343,3 +343,9 @@ variable "flow_log_destination_arn" {
   default     = null
   description = "ARN of destination where vpc flow logs are to stored. Can be of existing s3 or existing cloudwatch log group."
 }
+
+variable "s3_sse_algorithm" {
+  type        = string
+  default     = "aws:kms"
+  description = "Server-side encryption algorithm to use. Valid values are AES256 and aws:kms"
+}

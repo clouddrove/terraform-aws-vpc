@@ -186,16 +186,51 @@ resource "aws_vpc_dhcp_options_association" "this" {
 ## Description : Provides a kms key resource.
 ##               It create and control the cryptographic keys that are used to protect your data.
 ##-----------------------------------------------------------------------------
+data "aws_caller_identity" "current" {}
+data "aws_region" "current" {}
+
 resource "aws_kms_key" "kms" {
   count                   = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null ? 1 : 0
   deletion_window_in_days = var.kms_key_deletion_window
 }
 
 resource "aws_kms_alias" "kms-alias" {
-  name          = "alias/flow-log-key"
+  count         = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null ? 1 : 0
+  name          = format("alias/%s-flow-log-key", module.labels.id)
   target_key_id = aws_kms_key.kms[0].key_id
 }
 
+resource "aws_kms_key_policy" "example" {
+  count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" ? 1 : 0
+  key_id = aws_kms_key.kms[0].id
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Id" : "key-default-1",
+    "Statement" : [{
+      "Sid" : "Enable IAM User Permissions",
+      "Effect" : "Allow",
+      "Principal" : {
+        "AWS" : "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+      },
+      "Action" : "kms:*",
+      "Resource" : "*"
+      },
+      {
+        "Effect" : "Allow",
+        "Principal" : { "Service" : "logs.${data.aws_region.current.name}.amazonaws.com" },
+        "Action" : [
+          "kms:Encrypt*",
+          "kms:Decrypt*",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:Describe*"
+        ],
+        "Resource" : "*"
+      }
+    ]
+  })
+
+}
 ##-----------------------------------------------------------------------------
 ## Resource    : s3 bucket
 ## Description : Provides a S3 bucket resource.
@@ -239,7 +274,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "example" {
   rule {
     apply_server_side_encryption_by_default {
       kms_master_key_id = aws_kms_key.kms[0].arn
-      sse_algorithm     = "aws:kms"
+      sse_algorithm     = var.s3_sse_algorithm //"aws:kms"
     }
   }
 }
@@ -251,7 +286,7 @@ resource "aws_cloudwatch_log_group" "flow_log" {
   count             = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" ? 1 : 0
   name              = format("%s-vpc-flow-log-cloudwatch_log_group", module.labels.id)
   retention_in_days = var.flow_log_cloudwatch_log_group_retention_in_days
-  kms_key_id        = "arn:aws:kms:us-west-1:924144197303:key/ad4c441f-5c30-474d-8655-0ab1a24c99fa" //aws_kms_key.kms[0].arn
+  kms_key_id        = aws_kms_key.kms[0].arn
   tags              = module.labels.tags
 }
 
