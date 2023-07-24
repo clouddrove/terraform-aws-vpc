@@ -310,7 +310,7 @@ variable "flow_log_traffic_type" {
 
 variable "create_flow_log_cloudwatch_iam_role" {
   type        = bool
-  default     = true
+  default     = false
   description = "Flag to be set true when cloudwatch iam role is to be created when flow log destination type is set to cloudwatch logs."
 }
 
