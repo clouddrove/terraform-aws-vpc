@@ -6,19 +6,17 @@
 
 ##-----------------------------------------------------------------------------
 ## Module      : labels
-## Description : This terraform +module is designed to generate consistent label names and tags for resources. You can use terraform-labels to implement a strict naming convention.
+## Description : This terraform module is designed to generate consistent label names and tags for resources. You can use terraform-labels to implement a strict naming convention.
 ##-----------------------------------------------------------------------------
 module "labels" {
-  source  = "clouddrove/labels/aws"
-  version = "1.3.0"
-
+  source      = "clouddrove/labels/aws"
+  version     = "1.3.0"
   name        = var.name
   environment = var.environment
   managedby   = var.managedby
   label_order = var.label_order
   repository  = var.repository
 }
-
 ##-----------------------------------------------------------------------------
 ## Resource    : VPC
 ## Description : Terraform module to create VPC resource on AWS.
@@ -48,26 +46,22 @@ resource "aws_vpc" "default" {
     ]
   }
 }
-
 ##-----------------------------------------------------------------------------
 ## Resource     :VPC IPV4 CIDR BLOCK ASSOCIATION
 ## Description  :Provides a resource to associate additional IPv4 CIDR blocks with a VPC.
 ##-----------------------------------------------------------------------------
 resource "aws_vpc_ipv4_cidr_block_association" "default" {
-
   for_each   = toset(var.additional_cidr_block)
   vpc_id     = join("", aws_vpc.default.*.id)
   cidr_block = each.key
 }
-
 ##-----------------------------------------------------------------------------
 ## Resource    : INTERNET GATEWAY
 ## Description : Terraform module which creates Internet Geteway resources on AWS.
 ##               An AWS Internet Gateway virtual router that enables communication between VPC and the internet
 ##-----------------------------------------------------------------------------
 resource "aws_internet_gateway" "default" {
-  count = var.enable ? 1 : 0
-
+  count  = var.enable ? 1 : 0
   vpc_id = join("", aws_vpc.default.*.id)
   tags = merge(
     module.labels.tags,
@@ -76,27 +70,23 @@ resource "aws_internet_gateway" "default" {
     }
   )
 }
-
 ##-----------------------------------------------------------------------------
 ## Resource    : EGRESS ONLY INTERNET GATEWAY
 ## Description : Terraform module which creates EGRESS ONLY INTERNET GATEWAY resources on AWS
 ##               An egress-only internet gateway provides outbound-only internet connectivity for resources within a VPC
 ##-----------------------------------------------------------------------------
 resource "aws_egress_only_internet_gateway" "default" {
-  count = var.enable && var.enabled_ipv6_egress_only_internet_gateway ? 1 : 0
-
+  count  = var.enable && var.enabled_ipv6_egress_only_internet_gateway ? 1 : 0
   vpc_id = join("", aws_vpc.default.*.id)
   tags   = module.labels.tags
 }
-
 ##-----------------------------------------------------------------------------
 ## Resource    : Default Security Group
 ## Description : Ensure the default security group of every VPC restricts all traffic.
 ##               The default security group serves as a baseline security configuration within the VPC.
 ##-----------------------------------------------------------------------------
 resource "aws_default_security_group" "default" {
-  count = var.enable && var.restrict_default_sg == true ? 1 : 0
-
+  count  = var.enable && var.restrict_default_sg == true ? 1 : 0
   vpc_id = join("", aws_vpc.default.*.id)
   dynamic "ingress" {
     for_each = var.default_security_group_ingress
@@ -133,15 +123,13 @@ resource "aws_default_security_group" "default" {
     }
   )
 }
-
 ##-----------------------------------------------------------------------------
 ## Resource    : DEFAULT ROUTE TABLE
 ## Description : Provides a resource to manage a default route table of a VPC.
 ##               This resource can manage the default route table of the default or a non-default VPC.Provides a resource to create an ASSOCIATION between gateway and routing table.
 ##-----------------------------------------------------------------------------
 resource "aws_default_route_table" "default" {
-  count = var.enable && var.aws_default_route_table ? 1 : 0
-
+  count                  = var.enable && var.aws_default_route_table ? 1 : 0
   default_route_table_id = aws_vpc.default[0].default_route_table_id
   dynamic "route" {
     for_each = var.default_route_table_routes
@@ -150,7 +138,6 @@ resource "aws_default_route_table" "default" {
       cidr_block                 = route.value.cidr_block
       ipv6_cidr_block            = lookup(route.value, "ipv6_cidr_block", null)
       destination_prefix_list_id = lookup(route.value, "destination_prefix_list_id", null)
-
       # One of the following targets must be provided
       egress_only_gateway_id    = lookup(route.value, "egress_only_gateway_id", null)
       gateway_id                = lookup(route.value, "gateway_id", null)
@@ -169,14 +156,12 @@ resource "aws_default_route_table" "default" {
     }
   )
 }
-
 ##-----------------------------------------------------------------------------
 ## Resource    : VPC DHCP Option
 ## Description : Provides a VPC DHCP Options resource.
 ##-----------------------------------------------------------------------------
 resource "aws_vpc_dhcp_options" "vpc_dhcp" {
-  count = var.enable && var.enable_dhcp_options ? 1 : 0
-
+  count                = var.enable && var.enable_dhcp_options ? 1 : 0
   domain_name          = var.dhcp_options_domain_name
   domain_name_servers  = var.dhcp_options_domain_name_servers
   ntp_servers          = var.dhcp_options_ntp_servers
@@ -191,8 +176,7 @@ resource "aws_vpc_dhcp_options" "vpc_dhcp" {
 }
 
 resource "aws_vpc_dhcp_options_association" "this" {
-  count = var.enable && var.enable_dhcp_options ? 1 : 0
-
+  count           = var.enable && var.enable_dhcp_options ? 1 : 0
   vpc_id          = join("", aws_vpc.default.*.id)
   dhcp_options_id = join("", aws_vpc_dhcp_options.vpc_dhcp.*.id)
 }
@@ -203,8 +187,13 @@ resource "aws_vpc_dhcp_options_association" "this" {
 ##               It create and control the cryptographic keys that are used to protect your data.
 ##-----------------------------------------------------------------------------
 resource "aws_kms_key" "kms" {
-  count = var.enable && var.enable_flow_log ? 1 : 0
+  count                   = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null ? 1 : 0
   deletion_window_in_days = var.kms_key_deletion_window
+}
+
+resource "aws_kms_alias" "kms-alias" {
+  name          = "alias/flow-log-key"
+  target_key_id = aws_kms_key.kms[0].key_id
 }
 
 ##-----------------------------------------------------------------------------
@@ -213,13 +202,12 @@ resource "aws_kms_key" "kms" {
 ##               S3 bucket is a public cloud storage resource available in AWS.
 ##-----------------------------------------------------------------------------
 resource "aws_s3_bucket" "mybucket" {
-  count  = var.enable && var.enable_flow_log && var.flow_log_destination_type == "s3" ? 1 : 0
+  count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
   bucket = var.flow_logs_bucket_name
 }
 
 resource "aws_s3_bucket_ownership_controls" "example" {
-  count = var.enable && var.enable_flow_log && var.flow_log_destination_type == "s3" ? 1 : 0
-
+  count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
   bucket = join("", aws_s3_bucket.mybucket.*.id)
   rule {
     object_ownership = "BucketOwnerPreferred"
@@ -227,29 +215,26 @@ resource "aws_s3_bucket_ownership_controls" "example" {
 }
 
 resource "aws_s3_bucket_acl" "example" {
-  count      = var.enable && var.enable_flow_log && var.flow_log_destination_type == "s3" ? 1 : 0
+  count      = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
   depends_on = [aws_s3_bucket_ownership_controls.example]
   bucket     = join("", aws_s3_bucket.mybucket.*.id)
   acl        = "private"
 }
 
 resource "aws_s3_bucket_public_access_block" "example" {
-  count = var.enable && var.enable_flow_log && var.flow_log_destination_type == "s3" ? 1 : 0
-
+  count                   = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
   bucket                  = aws_s3_bucket.mybucket[0].id
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
 }
-
 ##-----------------------------------------------------------------------------
 ## Resource : s3 bucket server side encryption configuration
 ## Description : Provides a S3 bucket server-side encryption configuration resource.
 ##-----------------------------------------------------------------------------
 resource "aws_s3_bucket_server_side_encryption_configuration" "example" {
-  count = var.enable && var.enable_flow_log && var.flow_log_destination_type == "s3" ? 1 : 0
-
+  count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
   bucket = aws_s3_bucket.mybucket[0].id
   rule {
     apply_server_side_encryption_by_default {
@@ -258,29 +243,28 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "example" {
     }
   }
 }
-
 ##-----------------------------------------------------------------------------
 ## Cloudwatch Resource
 ## VPC flow log will be send to cloudwatch log group if enable.
 ##-----------------------------------------------------------------------------
 resource "aws_cloudwatch_log_group" "flow_log" {
-  count             = var.enable && var.enable_flow_log && var.flow_log_destination_type == "cloud-watch-logs" ? 1 : 0
+  count             = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" ? 1 : 0
   name              = format("%s-vpc-flow-log-cloudwatch_log_group", module.labels.id)
   retention_in_days = var.flow_log_cloudwatch_log_group_retention_in_days
-  kms_key_id        = aws_kms_key.kms[0].arn
+  kms_key_id        = "arn:aws:kms:us-west-1:924144197303:key/ad4c441f-5c30-474d-8655-0ab1a24c99fa" //aws_kms_key.kms[0].arn
   tags              = module.labels.tags
 }
 
 resource "aws_iam_role" "vpc_flow_log_cloudwatch" {
-  count                = var.enable && var.enable_flow_log && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0
-  name_prefix          = "vpc-flow-log-role-"
+  count                = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0
+  name                 = format("%s-vpc-flow-log-role", module.labels.id)
   assume_role_policy   = data.aws_iam_policy_document.flow_log_cloudwatch_assume_role[0].json
   permissions_boundary = var.vpc_flow_log_permissions_boundary
   tags                 = module.labels.tags
 }
 
 data "aws_iam_policy_document" "flow_log_cloudwatch_assume_role" {
-  count = var.enable && var.enable_flow_log && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0
+  count = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0
   statement {
     sid = "AWSVPCFlowLogsAssumeRole"
     principals {
@@ -293,25 +277,23 @@ data "aws_iam_policy_document" "flow_log_cloudwatch_assume_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "vpc_flow_log_cloudwatch" {
-  count      = var.enable && var.enable_flow_log && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0
+  count      = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0
   role       = aws_iam_role.vpc_flow_log_cloudwatch[0].name
   policy_arn = aws_iam_policy.vpc_flow_log_cloudwatch[0].arn
 }
 
 resource "aws_iam_policy" "vpc_flow_log_cloudwatch" {
-  count       = var.enable && var.enable_flow_log && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0
-  name_prefix = "vpc-flow-log-to-cloudwatch-"
-  policy      = data.aws_iam_policy_document.vpc_flow_log_cloudwatch[0].json
-  tags        = module.labels.tags
+  count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0
+  name   = format("%s-vpc-flow-log-to-cloudwatch", module.labels.id)
+  policy = data.aws_iam_policy_document.vpc_flow_log_cloudwatch[0].json
+  tags   = module.labels.tags
 }
 
 data "aws_iam_policy_document" "vpc_flow_log_cloudwatch" {
-  count = var.enable && var.enable_flow_log && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0
+  count = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0
   statement {
-    sid = "AWSVPCFlowLogsPushToCloudWatch"
-
+    sid    = "AWSVPCFlowLogsPushToCloudWatch"
     effect = "Allow"
-
     actions = [
       "logs:CreateLogStream",
       "logs:PutLogEvents",
@@ -321,7 +303,6 @@ data "aws_iam_policy_document" "vpc_flow_log_cloudwatch" {
     resources = ["*"]
   }
 }
-
 ##---------------------------------------------------------------------------------------------
 ## Resource    : FLOW LOG
 ## Description : Provides a VPC/Subnet/ENI Flow Log to capture IP traffic for a specific network interface, subnet, or VPC. Logs are sent to S3 Bucket.
@@ -329,7 +310,7 @@ data "aws_iam_policy_document" "vpc_flow_log_cloudwatch" {
 resource "aws_flow_log" "vpc_flow_log" {
   count                    = var.enable && var.enable_flow_log == true ? 1 : 0
   log_destination_type     = var.flow_log_destination_type
-  log_destination          = var.flow_log_destination_type == "s3" ? aws_s3_bucket.mybucket[0].arn : aws_cloudwatch_log_group.flow_log[0].arn
+  log_destination          = var.flow_log_destination_arn == null ? (var.flow_log_destination_type == "s3" ? aws_s3_bucket.mybucket[0].arn : aws_cloudwatch_log_group.flow_log[0].arn) : var.flow_log_destination_arn
   log_format               = var.flow_log_log_format
   iam_role_arn             = var.create_flow_log_cloudwatch_iam_role ? aws_iam_role.vpc_flow_log_cloudwatch[0].arn : var.flow_log_iam_role_arn
   traffic_type             = var.flow_log_traffic_type
@@ -346,11 +327,9 @@ resource "aws_flow_log" "vpc_flow_log" {
   }
   tags = module.labels.tags
 }
-
 ##----------------------------------------------------------------------------------------------------
 ## Resource      : DEFAULT NETWORK ACL
-## Provides an network ACL resource. You might set up network ACLs with rules
-## similar to your security groups in order to add an additional layer of security to your VPC.
+## Provides an network ACL resource. You might set up network ACLs with rules similar to your security groups in order to add an additional layer of security to your VPC.
 ##-------------------------------------------------------------------------------------------------------
 resource "aws_default_network_acl" "default" {
   count                  = var.enable && var.aws_default_network_acl ? 1 : 0

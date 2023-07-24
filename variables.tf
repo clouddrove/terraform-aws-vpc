@@ -108,7 +108,7 @@ variable "ipv4_netmask_length" {
 
 variable "ipv6_ipam_pool_id" {
   type        = string
-  default     = ""
+  default     = null
   description = "The ID of an IPv6 IPAM pool you want to use for allocating this VPC's CIDR."
 }
 
@@ -333,7 +333,13 @@ variable "flow_log_iam_role_arn" {
 }
 
 variable "kms_key_deletion_window" {
-  type = number
-  default = 10
+  type        = number
+  default     = 10
   description = "KMS Key deletion window in days."
+}
+
+variable "flow_log_destination_arn" {
+  type        = string
+  default     = null
+  description = "ARN of destination where vpc flow logs are to stored. Can be of existing s3 or existing cloudwatch log group."
 }
