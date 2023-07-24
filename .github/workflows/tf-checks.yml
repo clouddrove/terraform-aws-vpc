@@ -5,7 +5,15 @@ on:
   pull_request:
   workflow_dispatch:
 jobs:
-  tf-checks-complete-example:
+  basic:
     uses: clouddrove/github-shared-workflows/.github/workflows/tf-checks.yml@master
     with:
-      working_directory: './_example/'
+      working_directory: './_examples/basic/'
+  cloudwatch:
+    uses: clouddrove/github-shared-workflows/.github/workflows/tf-checks.yml@master
+    with:
+      working_directory: './_examples/vpc-flow-logs-cloudwatch/'
+  s3:
+    uses: clouddrove/github-shared-workflows/.github/workflows/tf-checks.yml@master
+    with:
+      working_directory: './_examples/vpc-flow-logs-s3/'
