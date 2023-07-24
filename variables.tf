@@ -307,3 +307,33 @@ variable "flow_log_traffic_type" {
   default     = "ALL"
   description = "The type of traffic to capture. Valid values: ACCEPT, REJECT, ALL"
 }
+
+variable "create_flow_log_cloudwatch_iam_role" {
+  type        = bool
+  default     = true
+  description = "Flag to be set true when cloudwatch iam role is to be created when flow log destination type is set to cloudwatch logs."
+}
+
+variable "flow_log_cloudwatch_log_group_retention_in_days" {
+  type        = number
+  default     = null
+  description = "Specifies the number of days you want to retain log events in the specified log group for VPC flow logs"
+}
+
+variable "vpc_flow_log_permissions_boundary" {
+  type        = string
+  default     = null
+  description = "The ARN of the Permissions Boundary for the VPC Flow Log IAM Role"
+}
+
+variable "flow_log_iam_role_arn" {
+  type        = string
+  default     = null
+  description = "The ARN for the IAM role that's used to post flow logs to a CloudWatch Logs log group. When flow_log_destination_arn is set to ARN of Cloudwatch Logs, this argument needs to be provided"
+}
+
+variable "kms_key_deletion_window" {
+  type = number
+  default = 10
+  description = "KMS Key deletion window in days."
+}

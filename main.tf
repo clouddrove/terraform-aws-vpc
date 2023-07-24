@@ -1,13 +1,13 @@
-# Managed By : CloudDrove
-# Description : This Script is used to create VPC, Internet Gateway and Flow log.
-# Copyright @ CloudDrove. All Right Reserved.
+##-----------------------------------------------------------------------------
+## Managed By : CloudDrove
+## Description : This Script is used to create VPC, Internet Gateway and Flow log.
+## Copyright @ CloudDrove. All Right Reserved.
+##-----------------------------------------------------------------------------
 
-####------------------------------------------------------------------------------
-#Module      : labels
-#Description : This terraform +module is designed to generate consistent label names and tags
-#              for resources. You can use terraform-labels to implement a strict naming
-#              convention.
-####------------------------------------------------------------------------------
+##-----------------------------------------------------------------------------
+## Module      : labels
+## Description : This terraform +module is designed to generate consistent label names and tags for resources. You can use terraform-labels to implement a strict naming convention.
+##-----------------------------------------------------------------------------
 module "labels" {
   source  = "clouddrove/labels/aws"
   version = "1.3.0"
@@ -19,11 +19,11 @@ module "labels" {
   repository  = var.repository
 }
 
-###---------------------------------------------------------------------------------------
-#Resource    : VPC
-#Description : Terraform module to create VPC resource on AWS.
+##-----------------------------------------------------------------------------
+## Resource    : VPC
+## Description : Terraform module to create VPC resource on AWS.
 ## A VPC is a virtual network that closely resembles a traditional network that you'd operate in your own data center.
-###--------------------------------------------------------------------------------------------
+##-----------------------------------------------------------------------------
 resource "aws_vpc" "default" {
   count                                = var.enable ? 1 : 0
   cidr_block                           = var.ipam_pool_enable ? null : var.cidr_block
@@ -49,10 +49,10 @@ resource "aws_vpc" "default" {
   }
 }
 
-####-------------------------------------------------------------------------------------
-#Resource     :VPC IPV4 CIDR BLOCK ASSOCIATION
-#Description  :Provides a resource to associate additional IPv4 CIDR blocks with a VPC.
-####---------------------------------------------------------------------------------------
+##-----------------------------------------------------------------------------
+## Resource     :VPC IPV4 CIDR BLOCK ASSOCIATION
+## Description  :Provides a resource to associate additional IPv4 CIDR blocks with a VPC.
+##-----------------------------------------------------------------------------
 resource "aws_vpc_ipv4_cidr_block_association" "default" {
 
   for_each   = toset(var.additional_cidr_block)
@@ -60,11 +60,11 @@ resource "aws_vpc_ipv4_cidr_block_association" "default" {
   cidr_block = each.key
 }
 
-####--------------------------------------------------------------------------------------
-#Resource    : INTERNET GATEWAY
-#Description : Terraform module which creates Internet Geteway resources on AWS
-#              An AWS Internet Gateway virtual router that enables communication between VPC and the internet
-####---------------------------------------------------------------------------------------
+##-----------------------------------------------------------------------------
+## Resource    : INTERNET GATEWAY
+## Description : Terraform module which creates Internet Geteway resources on AWS.
+##               An AWS Internet Gateway virtual router that enables communication between VPC and the internet
+##-----------------------------------------------------------------------------
 resource "aws_internet_gateway" "default" {
   count = var.enable ? 1 : 0
 
@@ -77,11 +77,11 @@ resource "aws_internet_gateway" "default" {
   )
 }
 
-#####------------------------------------------------------------------------------------------------
-#Resource    : EGRESS ONLY INTERNET GATEWAY
-#Description : Terraform module which creates EGRESS ONLY INTERNET GATEWAY resources on AWS
-#              An egress-only internet gateway provides outbound-only internet connectivity for resources within a VPC
-##---------------------------------------------------------------------------------------------------
+##-----------------------------------------------------------------------------
+## Resource    : EGRESS ONLY INTERNET GATEWAY
+## Description : Terraform module which creates EGRESS ONLY INTERNET GATEWAY resources on AWS
+##               An egress-only internet gateway provides outbound-only internet connectivity for resources within a VPC
+##-----------------------------------------------------------------------------
 resource "aws_egress_only_internet_gateway" "default" {
   count = var.enable && var.enabled_ipv6_egress_only_internet_gateway ? 1 : 0
 
@@ -89,11 +89,11 @@ resource "aws_egress_only_internet_gateway" "default" {
   tags   = module.labels.tags
 }
 
-###--------------------------------------------------------------------------------
-#Resource    : Default Security Group
-#Description : Ensure the default security group of every VPC restricts all traffic.
-#              The default security group serves as a baseline security configuration within the VPC.
-####----------------------------------------------------------------------------------
+##-----------------------------------------------------------------------------
+## Resource    : Default Security Group
+## Description : Ensure the default security group of every VPC restricts all traffic.
+##               The default security group serves as a baseline security configuration within the VPC.
+##-----------------------------------------------------------------------------
 resource "aws_default_security_group" "default" {
   count = var.enable && var.restrict_default_sg == true ? 1 : 0
 
@@ -134,12 +134,11 @@ resource "aws_default_security_group" "default" {
   )
 }
 
-##---------------------------------------------------------------------------------------
-# Resource    : DEFAULT ROUTE TABLE
-# Description : Provides a resource to manage a default route table of a VPC.
-#              This resource can manage the default route table of the default or a non-default VPC.
-#              Provides a resource to create an ASSOCIATION between gateway and routing table.
-# #----------------------------------------------------------------------------------
+##-----------------------------------------------------------------------------
+## Resource    : DEFAULT ROUTE TABLE
+## Description : Provides a resource to manage a default route table of a VPC.
+##               This resource can manage the default route table of the default or a non-default VPC.Provides a resource to create an ASSOCIATION between gateway and routing table.
+##-----------------------------------------------------------------------------
 resource "aws_default_route_table" "default" {
   count = var.enable && var.aws_default_route_table ? 1 : 0
 
@@ -171,10 +170,10 @@ resource "aws_default_route_table" "default" {
   )
 }
 
-####--------------------------------------------------------------
-#Resource    : VPC DHCP Option
-#Description : Provides a VPC DHCP Options resource.
-####--------------------------------------------------------------
+##-----------------------------------------------------------------------------
+## Resource    : VPC DHCP Option
+## Description : Provides a VPC DHCP Options resource.
+##-----------------------------------------------------------------------------
 resource "aws_vpc_dhcp_options" "vpc_dhcp" {
   count = var.enable && var.enable_dhcp_options ? 1 : 0
 
@@ -190,6 +189,7 @@ resource "aws_vpc_dhcp_options" "vpc_dhcp" {
     }
   )
 }
+
 resource "aws_vpc_dhcp_options_association" "this" {
   count = var.enable && var.enable_dhcp_options ? 1 : 0
 
@@ -197,22 +197,21 @@ resource "aws_vpc_dhcp_options_association" "this" {
   dhcp_options_id = join("", aws_vpc_dhcp_options.vpc_dhcp.*.id)
 }
 
-####--------------------------------------------------------------
-#Resource    : kms key
-#Description : Provides a kms key resource.
-#              it create and control the cryptographic keys that are used to protect your data.
-####--------------------------------------------------------------
+##-----------------------------------------------------------------------------
+## Resource    : kms key
+## Description : Provides a kms key resource.
+##               It create and control the cryptographic keys that are used to protect your data.
+##-----------------------------------------------------------------------------
 resource "aws_kms_key" "kms" {
   count = var.enable && var.enable_flow_log ? 1 : 0
-
-  deletion_window_in_days = 10
+  deletion_window_in_days = var.kms_key_deletion_window
 }
 
-####------------------------------------------------------------------------------
-#Resource    : s3 bucket
-#Description : Provides a s3 bucket resource.
-#              S3 bucket is a public cloud storage resource available in AWS.
-####------------------------------------------------------------------------------
+##-----------------------------------------------------------------------------
+## Resource    : s3 bucket
+## Description : Provides a S3 bucket resource.
+##               S3 bucket is a public cloud storage resource available in AWS.
+##-----------------------------------------------------------------------------
 resource "aws_s3_bucket" "mybucket" {
   count  = var.enable && var.enable_flow_log && var.flow_log_destination_type == "s3" ? 1 : 0
   bucket = var.flow_logs_bucket_name
@@ -244,10 +243,10 @@ resource "aws_s3_bucket_public_access_block" "example" {
   restrict_public_buckets = true
 }
 
-####------------------------------------------------------------------------------
-# Resource : s3 bucket server side encryption configuration
-# Description : Provides a S3 bucket server-side encryption configuration resource.
-####-------------------------------------------------------------------------------
+##-----------------------------------------------------------------------------
+## Resource : s3 bucket server side encryption configuration
+## Description : Provides a S3 bucket server-side encryption configuration resource.
+##-----------------------------------------------------------------------------
 resource "aws_s3_bucket_server_side_encryption_configuration" "example" {
   count = var.enable && var.enable_flow_log && var.flow_log_destination_type == "s3" ? 1 : 0
 
@@ -260,17 +259,79 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "example" {
   }
 }
 
+##-----------------------------------------------------------------------------
+## Cloudwatch Resource
+## VPC flow log will be send to cloudwatch log group if enable.
+##-----------------------------------------------------------------------------
+resource "aws_cloudwatch_log_group" "flow_log" {
+  count             = var.enable && var.enable_flow_log && var.flow_log_destination_type == "cloud-watch-logs" ? 1 : 0
+  name              = format("%s-vpc-flow-log-cloudwatch_log_group", module.labels.id)
+  retention_in_days = var.flow_log_cloudwatch_log_group_retention_in_days
+  kms_key_id        = aws_kms_key.kms[0].arn
+  tags              = module.labels.tags
+}
+
+resource "aws_iam_role" "vpc_flow_log_cloudwatch" {
+  count                = var.enable && var.enable_flow_log && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0
+  name_prefix          = "vpc-flow-log-role-"
+  assume_role_policy   = data.aws_iam_policy_document.flow_log_cloudwatch_assume_role[0].json
+  permissions_boundary = var.vpc_flow_log_permissions_boundary
+  tags                 = module.labels.tags
+}
+
+data "aws_iam_policy_document" "flow_log_cloudwatch_assume_role" {
+  count = var.enable && var.enable_flow_log && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0
+  statement {
+    sid = "AWSVPCFlowLogsAssumeRole"
+    principals {
+      type        = "Service"
+      identifiers = ["vpc-flow-logs.amazonaws.com"]
+    }
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "vpc_flow_log_cloudwatch" {
+  count      = var.enable && var.enable_flow_log && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0
+  role       = aws_iam_role.vpc_flow_log_cloudwatch[0].name
+  policy_arn = aws_iam_policy.vpc_flow_log_cloudwatch[0].arn
+}
+
+resource "aws_iam_policy" "vpc_flow_log_cloudwatch" {
+  count       = var.enable && var.enable_flow_log && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0
+  name_prefix = "vpc-flow-log-to-cloudwatch-"
+  policy      = data.aws_iam_policy_document.vpc_flow_log_cloudwatch[0].json
+  tags        = module.labels.tags
+}
+
+data "aws_iam_policy_document" "vpc_flow_log_cloudwatch" {
+  count = var.enable && var.enable_flow_log && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0
+  statement {
+    sid = "AWSVPCFlowLogsPushToCloudWatch"
+
+    effect = "Allow"
+
+    actions = [
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+      "logs:DescribeLogGroups",
+      "logs:DescribeLogStreams",
+    ]
+    resources = ["*"]
+  }
+}
+
 ##---------------------------------------------------------------------------------------------
-#Resource    : FLOW LOG
-#Description : Provides a VPC/Subnet/ENI Flow Log to capture IP traffic for a
-#              specific network interface, subnet, or VPC. Logs are sent to S3 Bucket.
+## Resource    : FLOW LOG
+## Description : Provides a VPC/Subnet/ENI Flow Log to capture IP traffic for a specific network interface, subnet, or VPC. Logs are sent to S3 Bucket.
 ##---------------------------------------------------------------------------------------------
 resource "aws_flow_log" "vpc_flow_log" {
   count                    = var.enable && var.enable_flow_log == true ? 1 : 0
   log_destination_type     = var.flow_log_destination_type
-  log_destination          = var.flow_log_destination_arn
+  log_destination          = var.flow_log_destination_type == "s3" ? aws_s3_bucket.mybucket[0].arn : aws_cloudwatch_log_group.flow_log[0].arn
   log_format               = var.flow_log_log_format
-  iam_role_arn             = var.flow_log_iam_role_arn
+  iam_role_arn             = var.create_flow_log_cloudwatch_iam_role ? aws_iam_role.vpc_flow_log_cloudwatch[0].arn : var.flow_log_iam_role_arn
   traffic_type             = var.flow_log_traffic_type
   vpc_id                   = join("", aws_vpc.default.*.id)
   max_aggregation_interval = var.flow_log_max_aggregation_interval
@@ -287,7 +348,7 @@ resource "aws_flow_log" "vpc_flow_log" {
 }
 
 ##----------------------------------------------------------------------------------------------------
-#Resource      : DEFAULT NETWORK ACL
+## Resource      : DEFAULT NETWORK ACL
 ## Provides an network ACL resource. You might set up network ACLs with rules
 ## similar to your security groups in order to add an additional layer of security to your VPC.
 ##-------------------------------------------------------------------------------------------------------
