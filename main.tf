@@ -17,6 +17,7 @@ module "labels" {
 ##-----------------------------------------------------------------------------
 ## Below resources will deploy VPC and its components. 
 ##-----------------------------------------------------------------------------
+#tfsec:ignore:aws-ec2-require-vpc-flow-logs-for-all-vpcs ## Because flow log resource for vpc is defined below. 
 resource "aws_vpc" "default" {
   count                                = var.enable ? 1 : 0
   cidr_block                           = var.ipam_pool_enable ? null : var.cidr_block
