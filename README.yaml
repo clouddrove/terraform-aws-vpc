@@ -19,7 +19,7 @@ badges:
     url: "https://github.com/clouddrove/terraform-aws-vpc/releases/latest"
   - name: "tfsec"
     image: "https://github.com/clouddrove/terraform-aws-vpc/actions/workflows/tfsec.yml/badge.svg"
-    url: "https://github.com/clouddrove/terraform-aws-vpc/actions/workflows/tfsec.yml/badge.svg"
+    url: "https://github.com/clouddrove/terraform-aws-vpc/actions/workflows/tfsec.yml"
   - name: "Licence"
     image: "https://img.shields.io/badge/License-APACHE-blue.svg"
     url: "LICENSE.md"
@@ -35,17 +35,36 @@ include:
 # How to use this project
 usage: |-
   Here are some examples of how you can use this module in your inventory structure:
-    ```hcl
+
+  ### vpc basic example
+  ```hcl
     module "vpc" {
       source                              = "clouddrove/vpc/aws"
       version                             = "1.3.1"
       name                                = "vpc"
       environment                         = "example"
       cidr_block                          = "10.0.0.0/16"
-      enable_flow_log                     = true 
+      enable_flow_log                     = true # Flow logs will be stored in cloudwatch log group. Variables passed in default.
       create_flow_log_cloudwatch_iam_role = true
       additional_cidr_block               = ["172.3.0.0/16", "172.2.0.0/16"]
       dhcp_options_domain_name            = "service.consul"
       dhcp_options_domain_name_servers    = ["127.0.0.1", "10.10.0.2"]
-      }
-    ```
+    }
+ ```
+
+  ### vpc complete example
+  ```hcl
+    module "vpc" {
+      source                              = "clouddrove/vpc/aws"
+      version                             = "1.3.1"
+      name                             = "vpc"
+      environment                      = "example"
+      cidr_block                       = "10.0.0.0/16"
+      enable_flow_log                  = true
+      flow_log_destination_type        = "s3"
+      flow_logs_bucket_name            = "gc-vpc-flow-logs-bucket"
+      additional_cidr_block            = ["172.3.0.0/16", "172.2.0.0/16"]
+      dhcp_options_domain_name         = "service.consul"
+      dhcp_options_domain_name_servers = ["127.0.0.1", "10.10.0.2"]
+    }
+  ```
