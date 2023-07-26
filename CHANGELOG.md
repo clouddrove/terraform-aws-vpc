@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2023-07-26
+### :sparkles: New Features
+- [`02502c0`](https://github.com/clouddrove/terraform-aws-vpc/commit/02502c0e86dfb8a7fd1366462aed27e796c3acf0) - update workfflows and readme.yaml *(PR [#53](https://github.com/clouddrove/terraform-aws-vpc/pull/53) by [@theprashantyadav](https://github.com/theprashantyadav))*
+- [`16ad441`](https://github.com/clouddrove/terraform-aws-vpc/commit/16ad4418a97cb8fc83144cb7f9dbdd51eb779e34) - Updated resources to be dynamic and added support for flow logs to be published in cloudwatch *(commit by [@13archit](https://github.com/13archit))*
+- [`25f99bd`](https://github.com/clouddrove/terraform-aws-vpc/commit/25f99bd53cc6c051b785636572e5add5f7097d01) - Added cloudwatch resource *(commit by [@13archit](https://github.com/13archit))*
+- [`95a1a68`](https://github.com/clouddrove/terraform-aws-vpc/commit/95a1a68e3020612551124370fa1daa67bb433131) - Added test example and modified main.tf *(commit by [@13archit](https://github.com/13archit))*
+
+### :bug: Bug Fixes
+- [`309542d`](https://github.com/clouddrove/terraform-aws-vpc/commit/309542de7735f506d4dccd1246f550e76f384a9c) - Fixed kms key policy and updated example folder *(commit by [@13archit](https://github.com/13archit))*
+- [`a0ac339`](https://github.com/clouddrove/terraform-aws-vpc/commit/a0ac3394317c253c34e86ba9e609bddb6a1f4f85) - Fixed vulnerabilities *(commit by [@13archit](https://github.com/13archit))*
+- [`9537489`](https://github.com/clouddrove/terraform-aws-vpc/commit/953748945e248044656093e1a23a6b942fbb7396) - Updated comments and example folder heirarchy *(commit by [@13archit](https://github.com/13archit))*
+- [`6bb0fb9`](https://github.com/clouddrove/terraform-aws-vpc/commit/6bb0fb9e1ace6efc68c7ba9bfbc07c8a07728eae) - Fixed directory in workflows *(commit by [@13archit](https://github.com/13archit))*
+- [`b59d760`](https://github.com/clouddrove/terraform-aws-vpc/commit/b59d7606d93713fafeb9dfe194c7110351787183) - Fixed _example/complete and dependabot.yml *(commit by [@13archit](https://github.com/13archit))*
+- [`8e70e44`](https://github.com/clouddrove/terraform-aws-vpc/commit/8e70e44c180d62937d158c9750279fec18f965c2) - Added ignore for vpc flow log error because it enabled via separate resource *(commit by [@13archit](https://github.com/13archit))*
+- [`b07fc3c`](https://github.com/clouddrove/terraform-aws-vpc/commit/b07fc3ce14059898ab2336f6f87c522c8873b074) - updated github actions *(commit by [@mamrajyadav](https://github.com/mamrajyadav))*
+
+### :memo: Documentation Changes
+- [`baa9f10`](https://github.com/clouddrove/terraform-aws-vpc/commit/baa9f1089b3d2ccacf9339104762e32d274fc3b3) - update CHANGELOG.md for 1.3.1 *(commit by [@clouddrove-ci](https://github.com/clouddrove-ci))*
+
+
 ## [1.3.1] - 2023-05-31
 ### :sparkles: New Features
 - [`6f2735f`](https://github.com/clouddrove/terraform-aws-vpc/commit/6f2735fa5657122dd4c6e61375d38073ba6f4ceb) - updated tfsec.yml file *(commit by [@vibhutigoyal](https://github.com/vibhutigoyal))*
@@ -97,3 +117,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [v0.15.1]: https://github.com/clouddrove/terraform-aws-vpc/compare/0.15.0...0.15.1
 [v1.3.0]:  https://github.com/clouddrove/terraform-aws-vpc/compare/0.15.1...1.3.0
 [1.3.1]: https://github.com/clouddrove/terraform-aws-vpc/compare/1.3.0...1.3.1
+[2.0.0]: https://github.com/clouddrove/terraform-aws-vpc/compare/1.3.1...2.0.0
