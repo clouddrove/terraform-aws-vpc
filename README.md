@@ -53,6 +53,8 @@ We have [*fifty plus terraform modules*][terraform_modules]. A few of them are c
 ## Prerequisites
 
 This module has a few dependencies: 
+- [Terraform 1.4.6](https://learn.hashicorp.com/terraform/getting-started/install.html)
+
 
 
 
@@ -71,7 +73,7 @@ Here are some examples of how you can use this module in your inventory structur
 ```hcl
     module "vpc" {
     source                              = "clouddrove/vpc/aws"
-    version                             = "1.3.1"
+    version                             = "2.0.0"
     name                                = "vpc"
     environment                         = "example"
     cidr_block                          = "10.0.0.0/16"
@@ -87,7 +89,7 @@ Here are some examples of how you can use this module in your inventory structur
 ```hcl
     module "vpc" {
     source                           = "clouddrove/vpc/aws"
-    version                          = "1.3.1"
+    version                          = "2.0.0"
     name                             = "vpc"
     environment                      = "example"
     cidr_block                       = "10.0.0.0/16"
