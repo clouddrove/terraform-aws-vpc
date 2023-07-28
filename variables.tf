@@ -349,3 +349,9 @@ variable "enable_key_rotation" {
   default     = true
   description = "Specifies whether key rotation is enabled. Defaults to true(security best practice)"
 }
+
+variable "block_http_traffic" {
+  type        = bool
+  default     = true
+  description = "True when http traffic has to be blocked for S3."
+}
