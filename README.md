@@ -115,6 +115,7 @@ Here are some examples of how you can use this module in your inventory structur
 | assign\_generated\_ipv6\_cidr\_block | Requests an Amazon-provided IPv6 CIDR block with a /56 prefix length for the VPC. You cannot specify the range of IP addresses, or the size of the CIDR block. Conflicts with ipv6\_ipam\_pool\_id | `bool` | `true` | no |
 | aws\_default\_network\_acl | A boolean flag to enable/disable Default Network acl in the VPC. | `bool` | `true` | no |
 | aws\_default\_route\_table | A boolean flag to enable/disable Default Route Table in the VPC. | `bool` | `true` | no |
+| block\_http\_traffic | True when http traffic has to be blocked for S3. | `bool` | `true` | no |
 | cidr\_block | CIDR for the VPC. | `string` | `""` | no |
 | create\_flow\_log\_cloudwatch\_iam\_role | Flag to be set true when cloudwatch iam role is to be created when flow log destination type is set to cloudwatch logs. | `bool` | `false` | no |
 | default\_network\_acl\_egress | List of maps of egress rules to set on the Default Network ACL | `list(map(string))` | <pre>[<br>  {<br>    "action": "allow",<br>    "cidr_block": "0.0.0.0/0",<br>    "from_port": 0,<br>    "protocol": "-1",<br>    "rule_no": 100,<br>    "to_port": 0<br>  },<br>  {<br>    "action": "allow",<br>    "from_port": 0,<br>    "ipv6_cidr_block": "::/0",<br>    "protocol": "-1",<br>    "rule_no": 101,<br>    "to_port": 0<br>  }<br>]</pre> | no |
