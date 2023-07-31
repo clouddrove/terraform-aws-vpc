@@ -258,7 +258,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "example" {
 }
 
 resource "aws_s3_bucket_policy" "block-http" {
-  count  = var.block_http_traffic ? 1 : 0
+  count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" && var.block_http_traffic ? 1 : 0
   bucket = aws_s3_bucket.mybucket[0].id
 
   policy = jsonencode({
