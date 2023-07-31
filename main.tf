@@ -256,6 +256,34 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "example" {
     }
   }
 }
+
+resource "aws_s3_bucket_policy" "block-http" {
+  count  = var.block_http_traffic ? 1 : 0
+  bucket = aws_s3_bucket.mybucket[0].id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Id      = "Blockhttp"
+    Statement = [
+      {
+        "Sid" : "AllowSSLRequestsOnly",
+        "Effect" : "Deny",
+        "Principal" : "*",
+        "Action" : "s3:*",
+        "Resource" : [
+          "${aws_s3_bucket.mybucket[0].arn}",
+          "${aws_s3_bucket.mybucket[0].arn}/*",
+        ],
+        "Condition" : {
+          "Bool" : {
+            "aws:SecureTransport" : "false"
+          }
+        }
+      },
+    ]
+  })
+}
+
 ##-----------------------------------------------------------------------------
 ## Below resources will create cloudwatch log group and its components. This cloudwatch log group will be used to store vpc flow logs if "flow_log_destination_type" variable is set to "cloud-watch-logs".
 ##-----------------------------------------------------------------------------
