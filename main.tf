@@ -1,9 +1,9 @@
-# Managed By : CloudDrove 
+# Managed By : CloudDrove
 # Copyright @ CloudDrove. All Right Reserved.
 
 
-##----------------------------------------------------------------------------- 
-## Labels module callled that will be used for naming and tags.   
+##-----------------------------------------------------------------------------
+## Labels module callled that will be used for naming and tags.
 ##-----------------------------------------------------------------------------
 module "labels" {
   source      = "clouddrove/labels/aws"
@@ -15,9 +15,9 @@ module "labels" {
   repository  = var.repository
 }
 ##-----------------------------------------------------------------------------
-## Below resources will deploy VPC and its components. 
+## Below resources will deploy VPC and its components.
 ##-----------------------------------------------------------------------------
-#tfsec:ignore:aws-ec2-require-vpc-flow-logs-for-all-vpcs ## Because flow log resource for vpc is defined below. 
+#tfsec:ignore:aws-ec2-require-vpc-flow-logs-for-all-vpcs ## Because flow log resource for vpc is defined below.
 resource "aws_vpc" "default" {
   count                                = var.enable ? 1 : 0
   cidr_block                           = var.ipam_pool_enable ? null : var.cidr_block
@@ -45,13 +45,13 @@ resource "aws_vpc" "default" {
 
 resource "aws_vpc_ipv4_cidr_block_association" "default" {
   for_each   = toset(var.additional_cidr_block)
-  vpc_id     = join("", aws_vpc.default.*.id)
+  vpc_id     = join("", aws_vpc.default[*].id)
   cidr_block = each.key
 }
 
 resource "aws_internet_gateway" "default" {
   count  = var.enable ? 1 : 0
-  vpc_id = join("", aws_vpc.default.*.id)
+  vpc_id = join("", aws_vpc.default[*].id)
   tags = merge(
     module.labels.tags,
     {
@@ -62,15 +62,15 @@ resource "aws_internet_gateway" "default" {
 
 resource "aws_egress_only_internet_gateway" "default" {
   count  = var.enable && var.enabled_ipv6_egress_only_internet_gateway ? 1 : 0
-  vpc_id = join("", aws_vpc.default.*.id)
+  vpc_id = join("", aws_vpc.default[*].id)
   tags   = module.labels.tags
 }
 ##-----------------------------------------------------------------------------
-## Below resource is used to create default security group for vpc communication. 
+## Below resource is used to create default security group for vpc communication.
 ##-----------------------------------------------------------------------------
 resource "aws_default_security_group" "default" {
   count  = var.enable && var.restrict_default_sg == true ? 1 : 0
-  vpc_id = join("", aws_vpc.default.*.id)
+  vpc_id = join("", aws_vpc.default[*].id)
   dynamic "ingress" {
     for_each = var.default_security_group_ingress
     content {
@@ -107,7 +107,7 @@ resource "aws_default_security_group" "default" {
   )
 }
 ##-----------------------------------------------------------------------------
-## Below resource will create default route table for vpc communication. 
+## Below resource will create default route table for vpc communication.
 ##-----------------------------------------------------------------------------
 resource "aws_default_route_table" "default" {
   count                  = var.enable && var.aws_default_route_table ? 1 : 0
@@ -138,7 +138,7 @@ resource "aws_default_route_table" "default" {
   )
 }
 ##-----------------------------------------------------------------------------
-## Below resource is used to configure vpc dhcp options. 
+## Below resource is used to configure vpc dhcp options.
 ##-----------------------------------------------------------------------------
 resource "aws_vpc_dhcp_options" "vpc_dhcp" {
   count                = var.enable && var.enable_dhcp_options ? 1 : 0
@@ -157,12 +157,12 @@ resource "aws_vpc_dhcp_options" "vpc_dhcp" {
 
 resource "aws_vpc_dhcp_options_association" "this" {
   count           = var.enable && var.enable_dhcp_options ? 1 : 0
-  vpc_id          = join("", aws_vpc.default.*.id)
-  dhcp_options_id = join("", aws_vpc_dhcp_options.vpc_dhcp.*.id)
+  vpc_id          = join("", aws_vpc.default[*].id)
+  dhcp_options_id = join("", aws_vpc_dhcp_options.vpc_dhcp[*].id)
 }
 
 ##-----------------------------------------------------------------------------
-## Below resource will create kms key. This key will used for encryption of flow logs stored in S3 bucket or cloudwatch log group. 
+## Below resource will create kms key. This key will used for encryption of flow logs stored in S3 bucket or cloudwatch log group.
 ##-----------------------------------------------------------------------------
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
@@ -180,8 +180,8 @@ resource "aws_kms_alias" "kms-alias" {
 }
 
 ##-----------------------------------------------------------------------------
-## Below resource will attach policy to above created kms key. The above created key require policy to be attached so that cloudwatch log group can access it. 
-## It will be only created when vpc flow logs are stored in cloudwatch log group. 
+## Below resource will attach policy to above created kms key. The above created key require policy to be attached so that cloudwatch log group can access it.
+## It will be only created when vpc flow logs are stored in cloudwatch log group.
 ##-----------------------------------------------------------------------------
 resource "aws_kms_key_policy" "example" {
   count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" ? 1 : 0
@@ -224,7 +224,7 @@ resource "aws_s3_bucket" "mybucket" {
 
 resource "aws_s3_bucket_ownership_controls" "example" {
   count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
-  bucket = join("", aws_s3_bucket.mybucket.*.id)
+  bucket = join("", aws_s3_bucket.mybucket[*].id)
   rule {
     object_ownership = "BucketOwnerPreferred"
   }
@@ -233,7 +233,7 @@ resource "aws_s3_bucket_ownership_controls" "example" {
 resource "aws_s3_bucket_acl" "example" {
   count      = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
   depends_on = [aws_s3_bucket_ownership_controls.example]
-  bucket     = join("", aws_s3_bucket.mybucket.*.id)
+  bucket     = join("", aws_s3_bucket.mybucket[*].id)
   acl        = "private"
 }
 
@@ -271,7 +271,7 @@ resource "aws_s3_bucket_policy" "block-http" {
         "Principal" : "*",
         "Action" : "s3:*",
         "Resource" : [
-          "${aws_s3_bucket.mybucket[0].arn}",
+          aws_s3_bucket.mybucket[0].arn,
           "${aws_s3_bucket.mybucket[0].arn}/*",
         ],
         "Condition" : {
@@ -344,7 +344,7 @@ data "aws_iam_policy_document" "vpc_flow_log_cloudwatch" {
   }
 }
 ##---------------------------------------------------------------------------------------------
-## Below resource will deploy vpc flow logs for vpc created above. VPC flow log can be stored in either S3 bucket or Cloudwatch log group, as per your requirement. 
+## Below resource will deploy vpc flow logs for vpc created above. VPC flow log can be stored in either S3 bucket or Cloudwatch log group, as per your requirement.
 ##---------------------------------------------------------------------------------------------
 resource "aws_flow_log" "vpc_flow_log" {
   count                    = var.enable && var.enable_flow_log == true ? 1 : 0
@@ -353,7 +353,7 @@ resource "aws_flow_log" "vpc_flow_log" {
   log_format               = var.flow_log_log_format
   iam_role_arn             = var.create_flow_log_cloudwatch_iam_role ? aws_iam_role.vpc_flow_log_cloudwatch[0].arn : var.flow_log_iam_role_arn
   traffic_type             = var.flow_log_traffic_type
-  vpc_id                   = join("", aws_vpc.default.*.id)
+  vpc_id                   = join("", aws_vpc.default[*].id)
   max_aggregation_interval = var.flow_log_max_aggregation_interval
   dynamic "destination_options" {
     for_each = var.flow_log_destination_type == "s3" ? [true] : []
@@ -367,7 +367,7 @@ resource "aws_flow_log" "vpc_flow_log" {
   tags = module.labels.tags
 }
 ##----------------------------------------------------------------------------------------------------
-## Below resource will deploy default network acl for vpc communication. 
+## Below resource will deploy default network acl for vpc communication.
 ##-------------------------------------------------------------------------------------------------------
 resource "aws_default_network_acl" "default" {
   count                  = var.enable && var.aws_default_network_acl ? 1 : 0

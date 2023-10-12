@@ -1,13 +1,19 @@
 provider "aws" {
   region = "us-west-1"
 }
+
+locals {
+  name        = "vpc"
+  environment = "example"
+}
 ##-----------------------------------------------------------------------------
-## VPC Module Call. 
+## VPC Module Call.
 ##-----------------------------------------------------------------------------
 module "vpc" {
-  source                              = "../.."
-  name                                = "vpc"
-  environment                         = "example"
+  source = "../.."
+
+  name                                = local.name
+  environment                         = local.environment
   cidr_block                          = "10.0.0.0/16"
   enable_flow_log                     = true # Flow logs will be stored in cloudwatch log group. Variables passed in default.
   create_flow_log_cloudwatch_iam_role = true
