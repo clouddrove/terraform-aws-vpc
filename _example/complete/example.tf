@@ -4,7 +4,7 @@ provider "aws" {
 
 locals {
   name        = "vpc"
-  environment = "devi"
+  environment = "example"
 }
 ##-----------------------------------------------------------------------------
 ## VPC Module Call.
