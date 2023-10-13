@@ -16,7 +16,7 @@ module "vpc" {
   environment                      = local.environment
   cidr_block                       = "10.0.0.0/16"
   enable_flow_log                  = true
-  enable = true
+  enable                           = true
   flow_log_destination_type        = "s3"
   flow_logs_bucket_name            = "gc-vpc-flow-logs-bucket"
   additional_cidr_block            = ["172.3.0.0/16", "172.2.0.0/16"]
