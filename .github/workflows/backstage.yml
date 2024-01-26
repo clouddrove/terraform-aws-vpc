@@ -1,0 +1,67 @@
+# Define the name of the GitHub Action workflow
+name: Create an ec2 instance
+# This workflow is manually triggered using the GitHub Actions UI
+on:
+  workflow_dispatch:
+    # Define inputs that are required for the manual trigger
+    inputs:
+      vpcName:
+        description: 'Name of VPC'  # What's this input for?
+        required: true  # Is it optional or required?
+      awsRegion:
+        description: 'AWS Region for the instance'
+        required: true
+      action:
+        description: 'Action to perform (apply/destroy)'
+        required: true
+      access_key:
+        description: 'access key for aws.'
+        required: true
+      secret_key:
+        description: 'secret access key for aws.'
+        required: true
+# Jobs to be executed in this workflow
+jobs:
+  # Job for applying the ec2 instance
+  apply_ec2:
+    # Use the latest Ubuntu runner
+    runs-on: ubuntu-latest
+    
+    # Execute this step only if the action input is "apply"
+    if: ${{ github.event.inputs.action == 'apply' }}
+    # Define the steps for this job
+    steps:
+    
+    # checkout the code from the repository
+    - name: Checkout code
+      uses: actions/checkout@v2
+      
+    # Initialize Terraform
+    - name: Terraform Init
+      run: terraform init
+      working-directory: _example/backstage  # Where should this command be run?
+     
+    # Apply the Terraform plan
+    - name: terraform apply
+      run: terraform apply -var access_key=${{ github.event.inputs.access_key }} -var secret_key=${{ github.event.inputs.secret_key }} -var vpcName=${{ github.event.inputs.vpcName }} -var awsRegion=${{ github.event.inputs.awsRegion }} -auto-approve
+      working-directory: _example/backstage
+
+  # Destroying the  ec2 instance
+  destroy_instance:
+    runs-on: ubuntu-latest
+    
+    # Execute this job only if the action input is "destroy"
+    if: ${{ github.event.inputs.action == 'destroy' }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+        
+    - name: Terraform Init
+      run: terraform init
+      working-directory: _example/backstage
+      
+    # Destroy all resources
+    - name: Terraform Destroy
+      run: terraform destroy -var access_key=${{ github.event.inputs.access_key }} -var secret_key=${{ github.event.inputs.secret_key }} -var vpcName=${{ github.event.inputs.vpcName }} -var awsRegion=${{ github.event.inputs.awsRegion }} -auto-approve
+      working-directory: _example/backstage
