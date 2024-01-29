@@ -1,14 +1,12 @@
 provider "aws" {
   region = var.awsRegion
-  access_key = var.access_key
-  secret_key = var.secret_key
 }
 
 terraform {
   backend "s3" {
-    bucket = format("%s-clouddrove-s3", var.vpcName)
-    key    = format("%s-clouddrove-s3/terraform.tfstate", var.vpcName) 
-    region = var.awsRegion
+    bucket = "backstage-clouddrove-s3"
+    key    = "backstage-clouddrove-s3/terraform.tfstate"
+    region = "us-east-1"
   }
 }
 
@@ -17,25 +15,14 @@ locals {
   environment = "example"
 }
 
-module "s3_bucket" {
-  source  = "clouddrove/s3/aws"
-  version = "2.0.0"
-
-  name        = format("%s-clouddrove-s3", var.vpcName)
-  environment = "test"
-  s3_name     = format("%s-clouddrove-s3", var.vpcName)
-  acl         = "private"
-  versioning  = true
-}
-
 ##-----------------------------------------------------------------------------
 ## VPC Module Call.
 ##-----------------------------------------------------------------------------
 module "vpc" {
   source = "../.."
 
-  name                                = local.name
-  environment                         = local.environment
+  name                                = var.vpcName
+  environment                         = "test"
   enable                              = true
   cidr_block                          = "10.0.0.0/16"
   enable_flow_log                     = true # Flow logs will be stored in cloudwatch log group. Variables passed in default.

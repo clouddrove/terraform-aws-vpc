@@ -7,10 +7,10 @@ on:
     inputs:
       vpcName:
         description: 'Name of VPC'  # What's this input for?
-        required: true  # Is it optional or required?
+        required: false  # Is it optional or required?
       awsRegion:
         description: 'AWS Region for the instance'
-        required: true
+        required: false
       action:
         description: 'Action to perform (apply/destroy)'
         required: true
@@ -35,7 +35,14 @@ jobs:
     # checkout the code from the repository
     - name: Checkout code
       uses: actions/checkout@v2
-      
+
+    - name: Install AWS CLI
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ inputs.access_key }}
+        aws-secret-access-key: ${{ inputs.secret_key }}
+        aws-region: ${{ inputs.awsRegion }}
+
     # Initialize Terraform
     - name: Terraform Init
       run: terraform init
@@ -43,7 +50,7 @@ jobs:
      
     # Apply the Terraform plan
     - name: terraform apply
-      run: terraform apply -var access_key=${{ github.event.inputs.access_key }} -var secret_key=${{ github.event.inputs.secret_key }} -var vpcName=${{ github.event.inputs.vpcName }} -var awsRegion=${{ github.event.inputs.awsRegion }} -auto-approve
+      run: terraform apply -var vpcName=${{ github.event.inputs.vpcName }} -var awsRegion=${{ github.event.inputs.awsRegion }} -auto-approve
       working-directory: _example/backstage
 
   # Destroying the  ec2 instance
@@ -56,6 +63,13 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
+
+    - name: Install AWS CLI
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ inputs.access_key }}
+        aws-secret-access-key: ${{ inputs.secret_key }}
+        aws-region: ${{ inputs.awsRegion }}
         
     - name: Terraform Init
       run: terraform init
@@ -63,5 +77,5 @@ jobs:
       
     # Destroy all resources
     - name: Terraform Destroy
-      run: terraform destroy -var access_key=${{ github.event.inputs.access_key }} -var secret_key=${{ github.event.inputs.secret_key }} -var vpcName=${{ github.event.inputs.vpcName }} -var awsRegion=${{ github.event.inputs.awsRegion }} -auto-approve
+      run: terraform destroy -auto-approve
       working-directory: _example/backstage
