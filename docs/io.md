@@ -74,4 +74,3 @@
 | vpc\_id | The ID of the VPC. |
 | vpc\_ipv6\_association\_id | The association ID for the IPv6 CIDR block. |
 | vpc\_main\_route\_table\_id | The ID of the main route table associated with this VPC. |
-
