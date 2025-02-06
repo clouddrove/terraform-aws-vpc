@@ -51,7 +51,7 @@ output "vpc_default_route_table_id" {
 }
 
 output "default_security_group_id" {
-  value = try(aws_default_security_group.default[0])
+  value       = try(aws_default_security_group.default[0])
   description = "ID of the default security group created by the VPC module."
 }
 
