@@ -50,6 +50,11 @@ output "vpc_default_route_table_id" {
   description = "The ID of the route table created by default on VPC creation."
 }
 
+output "default_security_group_id" {
+  value = try(aws_default_security_group.default[0])
+  description = "ID of the default security group created by the VPC module."
+}
+
 output "tags" {
   value       = module.labels.tags
   description = "A mapping of tags to assign to the resource."
@@ -73,3 +78,4 @@ output "arn" {
   value       = join("", aws_flow_log.vpc_flow_log[*].arn)
   description = "Amazon Resource Name (ARN) of VPC"
 }
+
