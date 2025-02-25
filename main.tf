@@ -1,7 +1,6 @@
 # Managed By : CloudDrove
 # Copyright @ CloudDrove. All Right Reserved.
 
-
 ##-----------------------------------------------------------------------------
 ## Labels module callled that will be used for naming and tags.
 ##-----------------------------------------------------------------------------
@@ -14,6 +13,16 @@ module "labels" {
   label_order = var.label_order
   repository  = var.repository
 }
+
+##-----------------------------------------------------------------------------
+## Local values for common variables
+##-----------------------------------------------------------------------------
+locals {
+  vpc_id = join("", aws_vpc.default[*].id)
+  enable_flow_log = var.enable && var.enable_flow_log
+  flow_log_destination_arn = var.flow_log_destination_arn == null ? (var.flow_log_destination_type == "s3" ? aws_s3_bucket.mybucket[0].arn : aws_cloudwatch_log_group.flow_log[0].arn) : var.flow_log_destination_arn
+}
+
 ##-----------------------------------------------------------------------------
 ## Below resources will deploy VPC and its components.
 ##-----------------------------------------------------------------------------
@@ -45,13 +54,13 @@ resource "aws_vpc" "default" {
 
 resource "aws_vpc_ipv4_cidr_block_association" "default" {
   for_each   = { for k in var.additional_cidr_block : k => k if var.enable }
-  vpc_id     = join("", aws_vpc.default[*].id)
+  vpc_id     = local.vpc_id
   cidr_block = each.key
 }
 
 resource "aws_internet_gateway" "default" {
   count  = var.enable ? 1 : 0
-  vpc_id = join("", aws_vpc.default[*].id)
+  vpc_id = local.vpc_id
   tags = merge(
     module.labels.tags,
     {
@@ -62,15 +71,16 @@ resource "aws_internet_gateway" "default" {
 
 resource "aws_egress_only_internet_gateway" "default" {
   count  = var.enable && var.enabled_ipv6_egress_only_internet_gateway ? 1 : 0
-  vpc_id = join("", aws_vpc.default[*].id)
+  vpc_id = local.vpc_id
   tags   = module.labels.tags
 }
+
 ##-----------------------------------------------------------------------------
 ## Below resource is used to create default security group for vpc communication.
 ##-----------------------------------------------------------------------------
 resource "aws_default_security_group" "default" {
   count  = var.enable && var.restrict_default_sg == true ? 1 : 0
-  vpc_id = join("", aws_vpc.default[*].id)
+  vpc_id = local.vpc_id
   dynamic "ingress" {
     for_each = var.default_security_group_ingress
     content {
@@ -106,6 +116,7 @@ resource "aws_default_security_group" "default" {
     }
   )
 }
+
 ##-----------------------------------------------------------------------------
 ## Below resource will create default route table for vpc communication.
 ##-----------------------------------------------------------------------------
@@ -137,6 +148,7 @@ resource "aws_default_route_table" "default" {
     }
   )
 }
+
 ##-----------------------------------------------------------------------------
 ## Below resource is used to configure vpc dhcp options.
 ##-----------------------------------------------------------------------------
@@ -157,7 +169,7 @@ resource "aws_vpc_dhcp_options" "vpc_dhcp" {
 
 resource "aws_vpc_dhcp_options_association" "this" {
   count           = var.enable && var.enable_dhcp_options ? 1 : 0
-  vpc_id          = join("", aws_vpc.default[*].id)
+  vpc_id          = local.vpc_id
   dhcp_options_id = join("", aws_vpc_dhcp_options.vpc_dhcp[*].id)
 }
 
@@ -168,13 +180,13 @@ data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
 resource "aws_kms_key" "kms" {
-  count                   = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null ? 1 : 0
+  count                   = local.enable_flow_log && var.flow_log_destination_arn == null ? 1 : 0
   deletion_window_in_days = var.kms_key_deletion_window
   enable_key_rotation     = var.enable_key_rotation
 }
 
 resource "aws_kms_alias" "kms-alias" {
-  count         = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null ? 1 : 0
+  count         = local.enable_flow_log && var.flow_log_destination_arn == null ? 1 : 0
   name          = format("alias/%s-flow-log-key", module.labels.id)
   target_key_id = aws_kms_key.kms[0].key_id
 }
@@ -184,7 +196,7 @@ resource "aws_kms_alias" "kms-alias" {
 ## It will be only created when vpc flow logs are stored in cloudwatch log group.
 ##-----------------------------------------------------------------------------
 resource "aws_kms_key_policy" "example" {
-  count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" ? 1 : 0
+  count  = local.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" ? 1 : 0
   key_id = aws_kms_key.kms[0].id
   policy = jsonencode({
     "Version" : "2012-10-17",
@@ -212,18 +224,18 @@ resource "aws_kms_key_policy" "example" {
       }
     ]
   })
-
 }
+
 ##-----------------------------------------------------------------------------
 ## Below resources will create S3 bucket and its components. This S3 bucket will be used to store vpc flow logs if "flow_log_destination_type" variable is set to "s3".
 ##-----------------------------------------------------------------------------
 resource "aws_s3_bucket" "mybucket" {
-  count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
+  count  = local.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
   bucket = var.flow_logs_bucket_name
 }
 
 resource "aws_s3_bucket_ownership_controls" "example" {
-  count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
+  count  = local.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
   bucket = join("", aws_s3_bucket.mybucket[*].id)
   rule {
     object_ownership = "BucketOwnerPreferred"
@@ -231,14 +243,14 @@ resource "aws_s3_bucket_ownership_controls" "example" {
 }
 
 resource "aws_s3_bucket_acl" "example" {
-  count      = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
+  count      = local.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
   depends_on = [aws_s3_bucket_ownership_controls.example]
   bucket     = join("", aws_s3_bucket.mybucket[*].id)
   acl        = "private"
 }
 
 resource "aws_s3_bucket_public_access_block" "example" {
-  count                   = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
+  count                   = local.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
   bucket                  = aws_s3_bucket.mybucket[0].id
   block_public_acls       = true
   block_public_policy     = true
@@ -247,7 +259,7 @@ resource "aws_s3_bucket_public_access_block" "example" {
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "example" {
-  count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
+  count  = local.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
   bucket = aws_s3_bucket.mybucket[0].id
   rule {
     apply_server_side_encryption_by_default {
@@ -258,7 +270,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "example" {
 }
 
 resource "aws_s3_bucket_policy" "block-http" {
-  count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" && var.block_http_traffic ? 1 : 0
+  count  = local.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" && var.block_http_traffic ? 1 : 0
   bucket = aws_s3_bucket.mybucket[0].id
 
   policy = jsonencode({
@@ -288,7 +300,7 @@ resource "aws_s3_bucket_policy" "block-http" {
 ## Below resources will create cloudwatch log group and its components. This cloudwatch log group will be used to store vpc flow logs if "flow_log_destination_type" variable is set to "cloud-watch-logs".
 ##-----------------------------------------------------------------------------
 resource "aws_cloudwatch_log_group" "flow_log" {
-  count             = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" ? 1 : 0
+  count             = local.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" ? 1 : 0
   name              = format("%s-vpc-flow-log-cloudwatch_log_group", module.labels.id)
   retention_in_days = var.flow_log_cloudwatch_log_group_retention_in_days
   kms_key_id        = aws_kms_key.kms[0].arn
@@ -296,7 +308,7 @@ resource "aws_cloudwatch_log_group" "flow_log" {
 }
 
 resource "aws_iam_role" "vpc_flow_log_cloudwatch" {
-  count                = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0
+  count                = local.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0
   name                 = format("%s-vpc-flow-log-role", module.labels.id)
   assume_role_policy   = data.aws_iam_policy_document.flow_log_cloudwatch_assume_role[0].json
   permissions_boundary = var.vpc_flow_log_permissions_boundary
@@ -304,7 +316,7 @@ resource "aws_iam_role" "vpc_flow_log_cloudwatch" {
 }
 
 data "aws_iam_policy_document" "flow_log_cloudwatch_assume_role" {
-  count = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0
+  count = local.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0
   statement {
     sid = "AWSVPCFlowLogsAssumeRole"
     principals {
@@ -317,20 +329,20 @@ data "aws_iam_policy_document" "flow_log_cloudwatch_assume_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "vpc_flow_log_cloudwatch" {
-  count      = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0
+  count      = local.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0
   role       = aws_iam_role.vpc_flow_log_cloudwatch[0].name
   policy_arn = aws_iam_policy.vpc_flow_log_cloudwatch[0].arn
 }
 
 resource "aws_iam_policy" "vpc_flow_log_cloudwatch" {
-  count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0
+  count  = local.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0
   name   = format("%s-vpc-flow-log-to-cloudwatch", module.labels.id)
   policy = data.aws_iam_policy_document.vpc_flow_log_cloudwatch[0].json
   tags   = module.labels.tags
 }
 
 data "aws_iam_policy_document" "vpc_flow_log_cloudwatch" {
-  count = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0
+  count = local.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0
   statement {
     sid    = "AWSVPCFlowLogsPushToCloudWatch"
     effect = "Allow"
@@ -343,17 +355,18 @@ data "aws_iam_policy_document" "vpc_flow_log_cloudwatch" {
     resources = ["*"]
   }
 }
+
 ##---------------------------------------------------------------------------------------------
 ## Below resource will deploy vpc flow logs for vpc created above. VPC flow log can be stored in either S3 bucket or Cloudwatch log group, as per your requirement.
 ##---------------------------------------------------------------------------------------------
 resource "aws_flow_log" "vpc_flow_log" {
-  count                    = var.enable && var.enable_flow_log == true ? 1 : 0
+  count                    = local.enable_flow_log ? 1 : 0
   log_destination_type     = var.flow_log_destination_type
-  log_destination          = var.flow_log_destination_arn == null ? (var.flow_log_destination_type == "s3" ? aws_s3_bucket.mybucket[0].arn : aws_cloudwatch_log_group.flow_log[0].arn) : var.flow_log_destination_arn
+  log_destination          = local.flow_log_destination_arn
   log_format               = var.flow_log_log_format
   iam_role_arn             = var.create_flow_log_cloudwatch_iam_role ? aws_iam_role.vpc_flow_log_cloudwatch[0].arn : var.flow_log_iam_role_arn
   traffic_type             = var.flow_log_traffic_type
-  vpc_id                   = join("", aws_vpc.default[*].id)
+  vpc_id                   = local.vpc_id
   max_aggregation_interval = var.flow_log_max_aggregation_interval
   dynamic "destination_options" {
     for_each = var.flow_log_destination_type == "s3" ? [true] : []
@@ -366,6 +379,7 @@ resource "aws_flow_log" "vpc_flow_log" {
   }
   tags = module.labels.tags
 }
+
 ##----------------------------------------------------------------------------------------------------
 ## Below resource will deploy default network acl for vpc communication.
 ##-------------------------------------------------------------------------------------------------------

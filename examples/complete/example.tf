@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 locals {
-  name        = "vpc"
+  name        = "test-01vpc"
   environment = "example"
 }
 ##-----------------------------------------------------------------------------
@@ -14,7 +14,7 @@ module "vpc" {
 
   name                             = local.name
   environment                      = local.environment
-  cidr_block                       = "10.0.0.0/16"
+  cidr_block                       = "10.50.0.0/16"
   enable_flow_log                  = true
   enable                           = true
   flow_log_destination_type        = "s3"
