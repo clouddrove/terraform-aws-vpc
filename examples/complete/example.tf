@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 locals {
-  name        = "test-vpc"
+  name        = "vpc"
   environment = "example"
 }
 ##-----------------------------------------------------------------------------
