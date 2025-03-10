@@ -18,8 +18,8 @@ module "labels" {
 ## Local values for common variables
 ##-----------------------------------------------------------------------------
 locals {
-  vpc_id = join("", aws_vpc.default[*].id)
-  enable_flow_log = var.enable && var.enable_flow_log
+  vpc_id                   = join("", aws_vpc.default[*].id)
+  enable_flow_log          = var.enable && var.enable_flow_log
   flow_log_destination_arn = var.flow_log_destination_arn == null ? (var.flow_log_destination_type == "s3" ? aws_s3_bucket.mybucket[0].arn : aws_cloudwatch_log_group.flow_log[0].arn) : var.flow_log_destination_arn
 }
 
