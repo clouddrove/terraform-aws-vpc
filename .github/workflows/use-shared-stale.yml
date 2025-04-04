@@ -1,0 +1,10 @@
+name: "Use Shared Stale Workflow"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  stale:
+    uses: clouddrove-sandbox/terraform-shared-workflows/.github/workflows/stale.yml@master
+    with:
+      repo-token: ${{ secrets.GITHUB_TOKEN }}
