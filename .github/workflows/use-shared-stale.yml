@@ -9,3 +9,4 @@ jobs:
     uses: clouddrove-sandbox/terraform-shared-workflows/.github/workflows/stale.yml@master
     secrets:
       repo-token: ${{ secrets.GITHUB_TOKEN }}
+
