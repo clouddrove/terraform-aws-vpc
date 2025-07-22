@@ -1,0 +1,14 @@
+name: 'Call Shared Workflow to Validate PR Title'
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - edited
+      - synchronize
+
+jobs:
+  validate-title:
+    uses: your-test-account/.github/.github/workflows/validate-pr-title.yml@main
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
