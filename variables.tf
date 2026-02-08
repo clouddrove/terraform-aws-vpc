@@ -27,7 +27,7 @@ variable "label_order" {
 variable "managedby" {
   type        = string
   default     = "hello@clouddrove.com"
-  description = "ManagedBy, eg 'CloudDrove' or 'AnmolNagpal'"
+  description = "ManagedBy, eg 'CloudDrove'"
 }
 
 #Module      : VPC
