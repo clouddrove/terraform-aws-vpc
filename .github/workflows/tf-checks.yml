@@ -9,7 +9,14 @@ jobs:
     uses: clouddrove/github-shared-workflows/.github/workflows/tf-checks.yml@master
     with:
       working_directory: './examples/basic/'
+      provider: aws
+    secrets: 
+      BUILD_ROLE: ${{ secrets.BUILD_ROLE }}
   complete:
     uses: clouddrove/github-shared-workflows/.github/workflows/tf-checks.yml@master
     with:
       working_directory: './examples/complete/'
+      provider: aws
+    secrets: 
+      BUILD_ROLE: ${{ secrets.BUILD_ROLE }}
+
