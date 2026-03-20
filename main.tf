@@ -13,7 +13,7 @@ module "labels" {
   managedby   = var.managedby
   label_order = var.label_order
   repository  = var.repository
-  extra_tags  = var.extra_tags
+  extra_tags  = var.tags
 }
 ##-----------------------------------------------------------------------------
 ## Below resources will deploy VPC and its components.

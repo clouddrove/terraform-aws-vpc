@@ -6,6 +6,6 @@ on:
 
 jobs:
   stale:
-    uses: clouddrove-sandbox/terraform-shared-workflows/.github/workflows/stale.yml@master
+    uses: clouddrove-sandbox/terraform-shared-workflows/.github/workflows/stale.yml@v2
     secrets:
       repo-token: ${{ secrets.GITHUB_TOKEN }}

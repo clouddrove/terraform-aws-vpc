@@ -6,10 +6,10 @@ variable "name" {
   description = "Name  (e.g. `app` or `cluster`)."
 }
 
-variable "extra_tags" {
+variable "tags" {
+  description = "A map of tags to add to all resources"
   type        = map(string)
   default     = {}
-  description = "Additional tags (e.g. map(`BusinessUnit`,`XYZ`)."
 }
 
 variable "environment" {
