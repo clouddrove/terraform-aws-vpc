@@ -172,6 +172,7 @@ resource "aws_kms_key" "kms" {
   count                   = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null ? 1 : 0
   deletion_window_in_days = var.kms_key_deletion_window
   enable_key_rotation     = var.enable_key_rotation
+  tags                    = module.labels.tags
 }
 
 resource "aws_kms_alias" "kms-alias" {
@@ -221,6 +222,7 @@ resource "aws_kms_key_policy" "example" {
 resource "aws_s3_bucket" "mybucket" {
   count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
   bucket = var.flow_logs_bucket_name
+  tags   = module.labels.tags
 }
 
 resource "aws_s3_bucket_ownership_controls" "example" {
