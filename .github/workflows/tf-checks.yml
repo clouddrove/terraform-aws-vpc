@@ -5,6 +5,7 @@ on:
   pull_request:
 jobs:
   basic:
+    if: github.actor != 'dependabot[bot]'
     uses: clouddrove/github-shared-workflows/.github/workflows/tf-checks.yml@master
     with:
       working_directory: './examples/basic/'
@@ -12,6 +13,7 @@ jobs:
     secrets: 
       BUILD_ROLE: ${{ secrets.BUILD_ROLE }}
   complete:
+    if: github.actor != 'dependabot[bot]'
     uses: clouddrove/github-shared-workflows/.github/workflows/tf-checks.yml@master
     with:
       working_directory: './examples/complete/'
