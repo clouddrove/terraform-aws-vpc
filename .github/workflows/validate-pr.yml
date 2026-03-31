@@ -9,6 +9,6 @@ on:
 
 jobs:
   validate-title:
-    uses: your-test-account/.github/.github/workflows/validate-pr-title.yml@main
+    uses: clouddrove/github-shared-workflows/.github/workflows/validate-pr-title.yml@1.4.1
     secrets:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
