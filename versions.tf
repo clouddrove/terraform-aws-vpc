@@ -9,7 +9,7 @@ terraform {
     }
   }
 
-  provider_meta "aws" {
+  provider_meta "aws-module" {
     module_name = "clouddrove/terraform-aws-vpc"
   }
 }
