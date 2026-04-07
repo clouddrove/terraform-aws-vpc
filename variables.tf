@@ -6,6 +6,12 @@ variable "name" {
   description = "Name  (e.g. `app` or `cluster`)."
 }
 
+variable "tags" {
+  description = "A map of tags to add to all resources"
+  type        = map(string)
+  default     = {}
+}
+
 variable "environment" {
   type        = string
   default     = ""
