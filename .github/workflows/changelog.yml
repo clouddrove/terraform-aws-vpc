@@ -1,21 +1,15 @@
----
-name: changelog
-permissions: write-all
+name: Release
+
 on:
-  push:
-    tags:
-      - "*"
-  workflow_dispatch:
-    inputs:
-      tag:
-        required: true
-        type: string
-        description: "Enter the semantic version tag (eg: 3.4.2) for which you want to update the changelog"
+  release:
+    types: [published]
+
 jobs:
   changelog:
     uses: clouddrove/github-shared-workflows/.github/workflows/release-changelog.yml@master
-    secrets: inherit
     with:
-      branch: 'master'
-      tag: ${{ inputs.tag || '' }}
-...
+      branch: master
+      tag_format: vX.Y.Z
+      release_tag: ${{ github.ref_name }}
+    secrets:
+      GITHUB: ${{ secrets.GITHUB_TOKEN }}

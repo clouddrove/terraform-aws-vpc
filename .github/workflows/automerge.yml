@@ -6,7 +6,7 @@ jobs:
   auto-merge:
     uses: clouddrove/github-shared-workflows/.github/workflows/pr-auto-merge.yml@master
     secrets:
-      GITHUB: ${{ secrets.GITHUB }}
+      GITHUB: ${{ secrets.GITHUB_TOKEN }}
     with:
       tfcheck: 'basic / Check code format'
 ...

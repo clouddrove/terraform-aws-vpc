@@ -3,6 +3,9 @@ permissions:
   id-token: write
 on:
   pull_request:
+    paths:
+      - '**/*.tf'
+      - '*.tf'
 jobs:
   basic:
     if: github.actor != 'dependabot[bot]'
