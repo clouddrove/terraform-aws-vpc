@@ -1,8 +1,14 @@
 name: tf-checks
+
 permissions:
   id-token: write
+  contents: read
+
 on:
   pull_request:
+    paths:
+      - '**/*.tf'
+      - '*.tf'
 jobs:
   basic:
     if: github.actor != 'dependabot[bot]'
