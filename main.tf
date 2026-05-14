@@ -46,13 +46,13 @@ resource "aws_vpc" "default" {
 
 resource "aws_vpc_ipv4_cidr_block_association" "default" {
   for_each   = { for k in var.additional_cidr_block : k => k if var.enable }
-  vpc_id     = join("", aws_vpc.default[*].id)
+  vpc_id     = one(aws_vpc.default[*].id)
   cidr_block = each.key
 }
 
 resource "aws_internet_gateway" "default" {
   count  = var.enable ? 1 : 0
-  vpc_id = join("", aws_vpc.default[*].id)
+  vpc_id = one(aws_vpc.default[*].id)
   tags = merge(
     module.labels.tags,
     {
@@ -63,7 +63,7 @@ resource "aws_internet_gateway" "default" {
 
 resource "aws_egress_only_internet_gateway" "default" {
   count  = var.enable && var.enabled_ipv6_egress_only_internet_gateway ? 1 : 0
-  vpc_id = join("", aws_vpc.default[*].id)
+  vpc_id = one(aws_vpc.default[*].id)
   tags   = module.labels.tags
 }
 ##-----------------------------------------------------------------------------
@@ -71,7 +71,7 @@ resource "aws_egress_only_internet_gateway" "default" {
 ##-----------------------------------------------------------------------------
 resource "aws_default_security_group" "default" {
   count  = var.enable && var.restrict_default_sg == true ? 1 : 0
-  vpc_id = join("", aws_vpc.default[*].id)
+  vpc_id = one(aws_vpc.default[*].id)
   dynamic "ingress" {
     for_each = var.default_security_group_ingress
     content {
@@ -158,8 +158,8 @@ resource "aws_vpc_dhcp_options" "vpc_dhcp" {
 
 resource "aws_vpc_dhcp_options_association" "this" {
   count           = var.enable && var.enable_dhcp_options ? 1 : 0
-  vpc_id          = join("", aws_vpc.default[*].id)
-  dhcp_options_id = join("", aws_vpc_dhcp_options.vpc_dhcp[*].id)
+  vpc_id          = one(aws_vpc.default[*].id)
+  dhcp_options_id = one(aws_vpc_dhcp_options.vpc_dhcp[*].id)
 }
 
 ##-----------------------------------------------------------------------------
@@ -227,7 +227,7 @@ resource "aws_s3_bucket" "mybucket" {
 
 resource "aws_s3_bucket_ownership_controls" "example" {
   count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
-  bucket = join("", aws_s3_bucket.mybucket[*].id)
+  bucket = one(aws_s3_bucket.mybucket[*].id)
   rule {
     object_ownership = "BucketOwnerPreferred"
   }
@@ -236,7 +236,7 @@ resource "aws_s3_bucket_ownership_controls" "example" {
 resource "aws_s3_bucket_acl" "example" {
   count      = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
   depends_on = [aws_s3_bucket_ownership_controls.example]
-  bucket     = join("", aws_s3_bucket.mybucket[*].id)
+  bucket     = one(aws_s3_bucket.mybucket[*].id)
   acl        = "private"
 }
 
@@ -257,6 +257,14 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "example" {
       kms_master_key_id = aws_kms_key.kms[0].arn
       sse_algorithm     = var.s3_sse_algorithm //"aws:kms"
     }
+  }
+}
+
+resource "aws_s3_bucket_versioning" "flow_log" {
+  count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
+  bucket = aws_s3_bucket.mybucket[0].id
+  versioning_configuration {
+    status = "Enabled"
   }
 }
 
@@ -343,7 +351,10 @@ data "aws_iam_policy_document" "vpc_flow_log_cloudwatch" {
       "logs:DescribeLogGroups",
       "logs:DescribeLogStreams",
     ]
-    resources = ["*"]
+    resources = [
+      aws_cloudwatch_log_group.flow_log[0].arn,
+      "${aws_cloudwatch_log_group.flow_log[0].arn}:*",
+    ]
   }
 }
 ##---------------------------------------------------------------------------------------------
@@ -356,7 +367,7 @@ resource "aws_flow_log" "vpc_flow_log" {
   log_format               = var.flow_log_log_format
   iam_role_arn             = var.create_flow_log_cloudwatch_iam_role ? aws_iam_role.vpc_flow_log_cloudwatch[0].arn : var.flow_log_iam_role_arn
   traffic_type             = var.flow_log_traffic_type
-  vpc_id                   = join("", aws_vpc.default[*].id)
+  vpc_id                   = one(aws_vpc.default[*].id)
   max_aggregation_interval = var.flow_log_max_aggregation_interval
   dynamic "destination_options" {
     for_each = var.flow_log_destination_type == "s3" ? [true] : []
