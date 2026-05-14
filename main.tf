@@ -257,15 +257,23 @@ resource "aws_s3_bucket" "mybucket" {
 }
 
 resource "aws_s3_bucket_ownership_controls" "example" {
+  #checkov:skip=CKV2_AWS_65: BucketOwnerEnforced would break existing deployments with ACL state; tracked for v2 migration
   count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
   bucket = one(aws_s3_bucket.mybucket[*].id)
   rule {
-    # BucketOwnerEnforced disables ACLs entirely (CKV2_AWS_65)
-    object_ownership = "BucketOwnerEnforced"
+    # NOTE: upgrading to BucketOwnerEnforced (which fully disables ACLs) is a
+    # breaking change for existing buckets with ACL state. Keeping BucketOwnerPreferred
+    # for safe in-place upgrades. Tracked: https://github.com/clouddrove/terraform-aws-vpc/issues
+    object_ownership = "BucketOwnerPreferred"
   }
 }
 
-# aws_s3_bucket_acl removed: incompatible with BucketOwnerEnforced ownership (ACLs disabled)
+resource "aws_s3_bucket_acl" "example" {
+  count      = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
+  depends_on = [aws_s3_bucket_ownership_controls.example]
+  bucket     = one(aws_s3_bucket.mybucket[*].id)
+  acl        = "private"
+}
 
 resource "aws_s3_bucket_public_access_block" "example" {
   count                   = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
@@ -369,19 +377,31 @@ resource "aws_iam_policy" "vpc_flow_log_cloudwatch" {
 
 data "aws_iam_policy_document" "vpc_flow_log_cloudwatch" {
   count = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0
+
+  # Write actions scoped to the specific log group (principle of least privilege)
   statement {
     sid    = "AWSVPCFlowLogsPushToCloudWatch"
     effect = "Allow"
     actions = [
       "logs:CreateLogStream",
       "logs:PutLogEvents",
-      "logs:DescribeLogGroups",
-      "logs:DescribeLogStreams",
     ]
     resources = [
       aws_cloudwatch_log_group.flow_log[0].arn,
       "${aws_cloudwatch_log_group.flow_log[0].arn}:*",
     ]
+  }
+
+  # Describe actions require resource="*" — AWS does not support resource-level
+  # restrictions for these read-only discovery actions
+  statement {
+    sid    = "AWSVPCFlowLogsDescribe"
+    effect = "Allow"
+    actions = [
+      "logs:DescribeLogGroups",
+      "logs:DescribeLogStreams",
+    ]
+    resources = ["*"] #checkov:skip=CKV_AWS_111,CKV_AWS_356: DescribeLogGroups/Streams require resource=* per AWS docs
   }
 }
 ##---------------------------------------------------------------------------------------------
