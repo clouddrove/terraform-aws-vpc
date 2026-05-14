@@ -243,7 +243,7 @@ resource "aws_kms_key_policy" "example" {
 ##-----------------------------------------------------------------------------
 ## Below resources will create S3 bucket and its components. This S3 bucket will be used to store vpc flow logs if "flow_log_destination_type" variable is set to "s3".
 ##-----------------------------------------------------------------------------
-resource "aws_s3_bucket" "mybucket" {
+resource "aws_s3_bucket" "flow_log" {
   #checkov:skip=CKV_AWS_18: access logging requires a separate destination bucket — configure externally
   #checkov:skip=CKV_AWS_21: versioning enabled via aws_s3_bucket_versioning.flow_log (same count condition)
   #checkov:skip=CKV_AWS_144: cross-region replication is not required for VPC flow logs
@@ -252,14 +252,14 @@ resource "aws_s3_bucket" "mybucket" {
   #checkov:skip=CKV2_AWS_61: lifecycle is user-configurable; not required for flow log storage
   #checkov:skip=CKV2_AWS_62: event notifications not applicable for flow log destination buckets
   count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
-  bucket = var.flow_logs_bucket_name
+  bucket = var.flow_logs_bucket_name != "" ? var.flow_logs_bucket_name : "${module.labels.id}-vpc-flow-logs"
   tags   = module.labels.tags
 }
 
 resource "aws_s3_bucket_ownership_controls" "example" {
   #checkov:skip=CKV2_AWS_65: BucketOwnerEnforced would break existing deployments with ACL state; tracked for v2 migration
   count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
-  bucket = one(aws_s3_bucket.mybucket[*].id)
+  bucket = one(aws_s3_bucket.flow_log[*].id)
   rule {
     # NOTE: upgrading to BucketOwnerEnforced (which fully disables ACLs) is a
     # breaking change for existing buckets with ACL state. Keeping BucketOwnerPreferred
@@ -271,13 +271,13 @@ resource "aws_s3_bucket_ownership_controls" "example" {
 resource "aws_s3_bucket_acl" "example" {
   count      = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
   depends_on = [aws_s3_bucket_ownership_controls.example]
-  bucket     = one(aws_s3_bucket.mybucket[*].id)
+  bucket     = one(aws_s3_bucket.flow_log[*].id)
   acl        = "private"
 }
 
 resource "aws_s3_bucket_public_access_block" "example" {
   count                   = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
-  bucket                  = aws_s3_bucket.mybucket[0].id
+  bucket                  = aws_s3_bucket.flow_log[0].id
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
@@ -286,7 +286,7 @@ resource "aws_s3_bucket_public_access_block" "example" {
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "example" {
   count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
-  bucket = aws_s3_bucket.mybucket[0].id
+  bucket = aws_s3_bucket.flow_log[0].id
   rule {
     apply_server_side_encryption_by_default {
       kms_master_key_id = aws_kms_key.kms[0].arn
@@ -297,7 +297,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "example" {
 
 resource "aws_s3_bucket_versioning" "flow_log" {
   count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
-  bucket = aws_s3_bucket.mybucket[0].id
+  bucket = aws_s3_bucket.flow_log[0].id
   versioning_configuration {
     status = "Enabled"
   }
@@ -305,7 +305,7 @@ resource "aws_s3_bucket_versioning" "flow_log" {
 
 resource "aws_s3_bucket_policy" "block-http" {
   count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" && var.block_http_traffic ? 1 : 0
-  bucket = aws_s3_bucket.mybucket[0].id
+  bucket = aws_s3_bucket.flow_log[0].id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -317,8 +317,8 @@ resource "aws_s3_bucket_policy" "block-http" {
         "Principal" : "*",
         "Action" : "s3:*",
         "Resource" : [
-          aws_s3_bucket.mybucket[0].arn,
-          "${aws_s3_bucket.mybucket[0].arn}/*",
+          aws_s3_bucket.flow_log[0].arn,
+          "${aws_s3_bucket.flow_log[0].arn}/*",
         ],
         "Condition" : {
           "Bool" : {
@@ -410,7 +410,7 @@ data "aws_iam_policy_document" "vpc_flow_log_cloudwatch" {
 resource "aws_flow_log" "vpc_flow_log" {
   count                    = var.enable && var.enable_flow_log == true ? 1 : 0
   log_destination_type     = var.flow_log_destination_type
-  log_destination          = var.flow_log_destination_arn == null ? (var.flow_log_destination_type == "s3" ? aws_s3_bucket.mybucket[0].arn : aws_cloudwatch_log_group.flow_log[0].arn) : var.flow_log_destination_arn
+  log_destination          = var.flow_log_destination_arn == null ? (var.flow_log_destination_type == "s3" ? aws_s3_bucket.flow_log[0].arn : aws_cloudwatch_log_group.flow_log[0].arn) : var.flow_log_destination_arn
   log_format               = var.flow_log_log_format
   iam_role_arn             = var.create_flow_log_cloudwatch_iam_role ? aws_iam_role.vpc_flow_log_cloudwatch[0].arn : var.flow_log_iam_role_arn
   traffic_type             = var.flow_log_traffic_type
