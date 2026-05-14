@@ -6,6 +6,7 @@
 ## Labels module callled that will be used for naming and tags.
 ##-----------------------------------------------------------------------------
 module "labels" {
+  #checkov:skip=CKV_TF_1: clouddrove modules use semver tags not commit hashes — intentional policy
   source      = "clouddrove/labels/aws"
   version     = "1.3.1"
   name        = var.name
@@ -20,6 +21,8 @@ module "labels" {
 ##-----------------------------------------------------------------------------
 #tfsec:ignore:aws-ec2-require-vpc-flow-logs-for-all-vpcs ## Because flow log resource for vpc is defined below.
 resource "aws_vpc" "default" {
+  #checkov:skip=CKV2_AWS_11: flow log created via aws_flow_log.vpc_flow_log when var.enable_flow_log=true
+  #checkov:skip=CKV2_AWS_12: default SG traffic controlled by var.default_security_group_ingress/egress
   count                                = var.enable ? 1 : 0
   cidr_block                           = var.ipam_pool_enable ? null : var.cidr_block
   ipv4_ipam_pool_id                    = var.ipv4_ipam_pool_id
@@ -46,13 +49,13 @@ resource "aws_vpc" "default" {
 
 resource "aws_vpc_ipv4_cidr_block_association" "default" {
   for_each   = { for k in var.additional_cidr_block : k => k if var.enable }
-  vpc_id     = join("", aws_vpc.default[*].id)
+  vpc_id     = one(aws_vpc.default[*].id)
   cidr_block = each.key
 }
 
 resource "aws_internet_gateway" "default" {
   count  = var.enable ? 1 : 0
-  vpc_id = join("", aws_vpc.default[*].id)
+  vpc_id = one(aws_vpc.default[*].id)
   tags = merge(
     module.labels.tags,
     {
@@ -63,15 +66,16 @@ resource "aws_internet_gateway" "default" {
 
 resource "aws_egress_only_internet_gateway" "default" {
   count  = var.enable && var.enabled_ipv6_egress_only_internet_gateway ? 1 : 0
-  vpc_id = join("", aws_vpc.default[*].id)
+  vpc_id = one(aws_vpc.default[*].id)
   tags   = module.labels.tags
 }
 ##-----------------------------------------------------------------------------
 ## Below resource is used to create default security group for vpc communication.
 ##-----------------------------------------------------------------------------
 resource "aws_default_security_group" "default" {
+  #checkov:skip=CKV2_AWS_12: default SG rules controlled by var.default_security_group_ingress/egress; defaults to no rules
   count  = var.enable && var.restrict_default_sg == true ? 1 : 0
-  vpc_id = join("", aws_vpc.default[*].id)
+  vpc_id = one(aws_vpc.default[*].id)
   dynamic "ingress" {
     for_each = var.default_security_group_ingress
     content {
@@ -158,8 +162,8 @@ resource "aws_vpc_dhcp_options" "vpc_dhcp" {
 
 resource "aws_vpc_dhcp_options_association" "this" {
   count           = var.enable && var.enable_dhcp_options ? 1 : 0
-  vpc_id          = join("", aws_vpc.default[*].id)
-  dhcp_options_id = join("", aws_vpc_dhcp_options.vpc_dhcp[*].id)
+  vpc_id          = one(aws_vpc.default[*].id)
+  dhcp_options_id = one(aws_vpc_dhcp_options.vpc_dhcp[*].id)
 }
 
 ##-----------------------------------------------------------------------------
@@ -169,6 +173,7 @@ data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
 resource "aws_kms_key" "kms" {
+  #checkov:skip=CKV2_AWS_64: policy defined in aws_kms_key_policy.example with the same count condition
   count                   = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null ? 1 : 0
   deletion_window_in_days = var.kms_key_deletion_window
   enable_key_rotation     = var.enable_key_rotation
@@ -185,22 +190,29 @@ resource "aws_kms_alias" "kms-alias" {
 ## Below resource will attach policy to above created kms key. The above created key require policy to be attached so that cloudwatch log group can access it.
 ## It will be only created when vpc flow logs are stored in cloudwatch log group.
 ##-----------------------------------------------------------------------------
+##-----------------------------------------------------------------------------
+## KMS key policy — always created alongside the key so the key is never
+## left policy-less (CKV2_AWS_64). A base statement grants root-account
+## management access; the second statement is service-specific.
+##-----------------------------------------------------------------------------
 resource "aws_kms_key_policy" "example" {
-  count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" ? 1 : 0
+  count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null ? 1 : 0
   key_id = aws_kms_key.kms[0].id
   policy = jsonencode({
     "Version" : "2012-10-17",
     "Id" : "key-default-1",
-    "Statement" : [{
-      "Sid" : "Enable IAM User Permissions",
-      "Effect" : "Allow",
-      "Principal" : {
-        "AWS" : "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
-      },
-      "Action" : "kms:*",
-      "Resource" : "*"
-      },
-      {
+    "Statement" : concat(
+      [{
+        "Sid" : "Enable IAM User Permissions",
+        "Effect" : "Allow",
+        "Principal" : {
+          "AWS" : "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        },
+        "Action" : "kms:*",
+        "Resource" : "*"
+      }],
+      var.flow_log_destination_type == "cloud-watch-logs" ? [{
+        "Sid" : "AllowCloudWatchLogs",
         "Effect" : "Allow",
         "Principal" : { "Service" : "logs.${data.aws_region.current.region}.amazonaws.com" },
         "Action" : [
@@ -211,24 +223,47 @@ resource "aws_kms_key_policy" "example" {
           "kms:Describe*"
         ],
         "Resource" : "*"
-      }
-    ]
+      }] : [],
+      var.flow_log_destination_type == "s3" ? [{
+        "Sid" : "AllowS3FlowLogs",
+        "Effect" : "Allow",
+        "Principal" : { "Service" : "delivery.logs.amazonaws.com" },
+        "Action" : [
+          "kms:Encrypt*",
+          "kms:Decrypt*",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:Describe*"
+        ],
+        "Resource" : "*"
+      }] : []
+    )
   })
-
 }
 ##-----------------------------------------------------------------------------
 ## Below resources will create S3 bucket and its components. This S3 bucket will be used to store vpc flow logs if "flow_log_destination_type" variable is set to "s3".
 ##-----------------------------------------------------------------------------
-resource "aws_s3_bucket" "mybucket" {
+resource "aws_s3_bucket" "flow_log" {
+  #checkov:skip=CKV_AWS_18: access logging requires a separate destination bucket — configure externally
+  #checkov:skip=CKV_AWS_21: versioning enabled via aws_s3_bucket_versioning.flow_log (same count condition)
+  #checkov:skip=CKV_AWS_144: cross-region replication is not required for VPC flow logs
+  #checkov:skip=CKV_AWS_145: SSE-KMS set via aws_s3_bucket_server_side_encryption_configuration.example
+  #checkov:skip=CKV2_AWS_6: public access block applied via aws_s3_bucket_public_access_block.example
+  #checkov:skip=CKV2_AWS_61: lifecycle is user-configurable; not required for flow log storage
+  #checkov:skip=CKV2_AWS_62: event notifications not applicable for flow log destination buckets
   count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
-  bucket = var.flow_logs_bucket_name
+  bucket = var.flow_logs_bucket_name != "" ? var.flow_logs_bucket_name : "${module.labels.id}-vpc-flow-logs"
   tags   = module.labels.tags
 }
 
 resource "aws_s3_bucket_ownership_controls" "example" {
+  #checkov:skip=CKV2_AWS_65: BucketOwnerEnforced would break existing deployments with ACL state; tracked for v2 migration
   count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
-  bucket = join("", aws_s3_bucket.mybucket[*].id)
+  bucket = one(aws_s3_bucket.flow_log[*].id)
   rule {
+    # NOTE: upgrading to BucketOwnerEnforced (which fully disables ACLs) is a
+    # breaking change for existing buckets with ACL state. Keeping BucketOwnerPreferred
+    # for safe in-place upgrades. Tracked: https://github.com/clouddrove/terraform-aws-vpc/issues
     object_ownership = "BucketOwnerPreferred"
   }
 }
@@ -236,13 +271,13 @@ resource "aws_s3_bucket_ownership_controls" "example" {
 resource "aws_s3_bucket_acl" "example" {
   count      = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
   depends_on = [aws_s3_bucket_ownership_controls.example]
-  bucket     = join("", aws_s3_bucket.mybucket[*].id)
+  bucket     = one(aws_s3_bucket.flow_log[*].id)
   acl        = "private"
 }
 
 resource "aws_s3_bucket_public_access_block" "example" {
   count                   = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
-  bucket                  = aws_s3_bucket.mybucket[0].id
+  bucket                  = aws_s3_bucket.flow_log[0].id
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
@@ -251,7 +286,7 @@ resource "aws_s3_bucket_public_access_block" "example" {
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "example" {
   count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
-  bucket = aws_s3_bucket.mybucket[0].id
+  bucket = aws_s3_bucket.flow_log[0].id
   rule {
     apply_server_side_encryption_by_default {
       kms_master_key_id = aws_kms_key.kms[0].arn
@@ -260,9 +295,17 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "example" {
   }
 }
 
+resource "aws_s3_bucket_versioning" "flow_log" {
+  count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
+  bucket = aws_s3_bucket.flow_log[0].id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
 resource "aws_s3_bucket_policy" "block-http" {
   count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" && var.block_http_traffic ? 1 : 0
-  bucket = aws_s3_bucket.mybucket[0].id
+  bucket = aws_s3_bucket.flow_log[0].id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -274,8 +317,8 @@ resource "aws_s3_bucket_policy" "block-http" {
         "Principal" : "*",
         "Action" : "s3:*",
         "Resource" : [
-          aws_s3_bucket.mybucket[0].arn,
-          "${aws_s3_bucket.mybucket[0].arn}/*",
+          aws_s3_bucket.flow_log[0].arn,
+          "${aws_s3_bucket.flow_log[0].arn}/*",
         ],
         "Condition" : {
           "Bool" : {
@@ -334,16 +377,31 @@ resource "aws_iam_policy" "vpc_flow_log_cloudwatch" {
 
 data "aws_iam_policy_document" "vpc_flow_log_cloudwatch" {
   count = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0
+
+  # Write actions scoped to the specific log group (principle of least privilege)
   statement {
     sid    = "AWSVPCFlowLogsPushToCloudWatch"
     effect = "Allow"
     actions = [
       "logs:CreateLogStream",
       "logs:PutLogEvents",
+    ]
+    resources = [
+      aws_cloudwatch_log_group.flow_log[0].arn,
+      "${aws_cloudwatch_log_group.flow_log[0].arn}:*",
+    ]
+  }
+
+  # Describe actions require resource="*" — AWS does not support resource-level
+  # restrictions for these read-only discovery actions
+  statement {
+    sid    = "AWSVPCFlowLogsDescribe"
+    effect = "Allow"
+    actions = [
       "logs:DescribeLogGroups",
       "logs:DescribeLogStreams",
     ]
-    resources = ["*"]
+    resources = ["*"] #checkov:skip=CKV_AWS_111,CKV_AWS_356: DescribeLogGroups/Streams require resource=* per AWS docs
   }
 }
 ##---------------------------------------------------------------------------------------------
@@ -352,11 +410,11 @@ data "aws_iam_policy_document" "vpc_flow_log_cloudwatch" {
 resource "aws_flow_log" "vpc_flow_log" {
   count                    = var.enable && var.enable_flow_log == true ? 1 : 0
   log_destination_type     = var.flow_log_destination_type
-  log_destination          = var.flow_log_destination_arn == null ? (var.flow_log_destination_type == "s3" ? aws_s3_bucket.mybucket[0].arn : aws_cloudwatch_log_group.flow_log[0].arn) : var.flow_log_destination_arn
+  log_destination          = var.flow_log_destination_arn == null ? (var.flow_log_destination_type == "s3" ? aws_s3_bucket.flow_log[0].arn : aws_cloudwatch_log_group.flow_log[0].arn) : var.flow_log_destination_arn
   log_format               = var.flow_log_log_format
   iam_role_arn             = var.create_flow_log_cloudwatch_iam_role ? aws_iam_role.vpc_flow_log_cloudwatch[0].arn : var.flow_log_iam_role_arn
   traffic_type             = var.flow_log_traffic_type
-  vpc_id                   = join("", aws_vpc.default[*].id)
+  vpc_id                   = one(aws_vpc.default[*].id)
   max_aggregation_interval = var.flow_log_max_aggregation_interval
   dynamic "destination_options" {
     for_each = var.flow_log_destination_type == "s3" ? [true] : []
