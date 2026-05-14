@@ -36,6 +36,7 @@ resource "aws_vpc" "default" {
   assign_generated_ipv6_cidr_block     = var.assign_generated_ipv6_cidr_block
   ipv6_cidr_block_network_border_group = var.ipv6_cidr_block_network_border_group
   enable_network_address_usage_metrics = var.enable_network_address_usage_metrics
+  region                               = var.region
   tags                                 = module.labels.tags
   lifecycle {
     # Ignore tags added by kubernetes
@@ -51,11 +52,13 @@ resource "aws_vpc_ipv4_cidr_block_association" "default" {
   for_each   = { for k in var.additional_cidr_block : k => k if var.enable }
   vpc_id     = one(aws_vpc.default[*].id)
   cidr_block = each.key
+  region     = var.region
 }
 
 resource "aws_internet_gateway" "default" {
   count  = var.enable ? 1 : 0
   vpc_id = one(aws_vpc.default[*].id)
+  region = var.region
   tags = merge(
     module.labels.tags,
     {
@@ -67,6 +70,7 @@ resource "aws_internet_gateway" "default" {
 resource "aws_egress_only_internet_gateway" "default" {
   count  = var.enable && var.enabled_ipv6_egress_only_internet_gateway ? 1 : 0
   vpc_id = one(aws_vpc.default[*].id)
+  region = var.region
   tags   = module.labels.tags
 }
 ##-----------------------------------------------------------------------------
@@ -152,6 +156,7 @@ resource "aws_vpc_dhcp_options" "vpc_dhcp" {
   ntp_servers          = var.dhcp_options_ntp_servers
   netbios_name_servers = var.dhcp_options_netbios_name_servers
   netbios_node_type    = var.dhcp_options_netbios_node_type
+  region               = var.region
   tags = merge(
     module.labels.tags,
     {
@@ -164,6 +169,7 @@ resource "aws_vpc_dhcp_options_association" "this" {
   count           = var.enable && var.enable_dhcp_options ? 1 : 0
   vpc_id          = one(aws_vpc.default[*].id)
   dhcp_options_id = one(aws_vpc_dhcp_options.vpc_dhcp[*].id)
+  region          = var.region
 }
 
 ##-----------------------------------------------------------------------------
@@ -177,6 +183,7 @@ resource "aws_kms_key" "kms" {
   count                   = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null ? 1 : 0
   deletion_window_in_days = var.kms_key_deletion_window
   enable_key_rotation     = var.enable_key_rotation
+  region                  = var.region
   tags                    = module.labels.tags
 }
 
@@ -184,6 +191,7 @@ resource "aws_kms_alias" "kms-alias" {
   count         = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null ? 1 : 0
   name          = format("alias/%s-flow-log-key", module.labels.id)
   target_key_id = aws_kms_key.kms[0].key_id
+  region        = var.region
 }
 
 ##-----------------------------------------------------------------------------
@@ -253,6 +261,7 @@ resource "aws_s3_bucket" "flow_log" {
   #checkov:skip=CKV2_AWS_62: event notifications not applicable for flow log destination buckets
   count  = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "s3" ? 1 : 0
   bucket = var.flow_logs_bucket_name != "" ? var.flow_logs_bucket_name : "${module.labels.id}-vpc-flow-logs"
+  region = var.region
   tags   = module.labels.tags
 }
 
@@ -338,6 +347,7 @@ resource "aws_cloudwatch_log_group" "flow_log" {
   name              = format("%s-vpc-flow-log-cloudwatch_log_group", module.labels.id)
   retention_in_days = var.flow_log_cloudwatch_log_group_retention_in_days
   kms_key_id        = aws_kms_key.kms[0].arn
+  region            = var.region
   tags              = module.labels.tags
 }
 
@@ -374,6 +384,7 @@ resource "aws_iam_policy" "vpc_flow_log_cloudwatch" {
   policy = data.aws_iam_policy_document.vpc_flow_log_cloudwatch[0].json
   tags   = module.labels.tags
 }
+
 
 data "aws_iam_policy_document" "vpc_flow_log_cloudwatch" {
   count = var.enable && var.enable_flow_log && var.flow_log_destination_arn == null && var.flow_log_destination_type == "cloud-watch-logs" && var.create_flow_log_cloudwatch_iam_role ? 1 : 0

@@ -361,3 +361,9 @@ variable "block_http_traffic" {
   default     = true
   description = "True when http traffic has to be blocked for S3."
 }
+
+variable "region" {
+  description = "The AWS region to deploy resources in."
+  type        = string
+  default     = "us-east-1"
+}
