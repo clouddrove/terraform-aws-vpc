@@ -214,7 +214,7 @@ resource "aws_kms_key_policy" "example" {
       var.flow_log_destination_type == "cloud-watch-logs" ? [{
         "Sid" : "AllowCloudWatchLogs",
         "Effect" : "Allow",
-        "Principal" : { "Service" : "logs.${data.aws_region.current.region}.amazonaws.com" },
+        "Principal" : { "Service" : "logs.${data.aws_region.current.name}.amazonaws.com" },
         "Action" : [
           "kms:Encrypt*",
           "kms:Decrypt*",
