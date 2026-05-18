@@ -14,5 +14,5 @@ jobs:
     permissions:
       contents: write
     secrets:
-      TOKEN : ${{ secrets.GITHUB }}
+      TOKEN : ${{ secrets.GITHUB_TOKEN }}
       SLACK_WEBHOOK_TERRAFORM: ${{ secrets.SLACK_WEBHOOK_TERRAFORM }}
