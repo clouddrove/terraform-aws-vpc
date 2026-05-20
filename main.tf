@@ -468,3 +468,75 @@ resource "aws_default_network_acl" "default" {
     }
   )
 }
+
+##-----------------------------------------------------------------------------
+## VPC Gateway Endpoints (S3, DynamoDB) — no ENI, no cost per hour.
+##-----------------------------------------------------------------------------
+resource "aws_vpc_endpoint" "gateway" {
+  for_each          = var.enable ? var.gateway_vpc_endpoints : {}
+  vpc_id            = one(aws_vpc.default[*].id)
+  service_name      = "com.amazonaws.${data.aws_region.current.region}.${each.key}"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = each.value.route_table_ids
+  tags = merge(
+    module.labels.tags,
+    { "Name" = format("%s-%s-gwep", module.labels.id, each.key) }
+  )
+}
+
+##-----------------------------------------------------------------------------
+## VPC Interface Endpoints — creates ENIs in nominated subnets.
+##-----------------------------------------------------------------------------
+resource "aws_vpc_endpoint" "interface" {
+  for_each            = var.enable ? var.interface_vpc_endpoints : {}
+  vpc_id              = one(aws_vpc.default[*].id)
+  service_name        = "com.amazonaws.${data.aws_region.current.region}.${each.key}"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = each.value.subnet_ids
+  security_group_ids  = each.value.security_group_ids
+  private_dns_enabled = each.value.private_dns_enabled
+  tags = merge(
+    module.labels.tags,
+    { "Name" = format("%s-%s-ifep", module.labels.id, each.key) }
+  )
+}
+
+##-----------------------------------------------------------------------------
+## Custom Network ACLs — per-subnet NACLs beyond the default.
+##-----------------------------------------------------------------------------
+resource "aws_network_acl" "custom" {
+  for_each   = var.enable ? var.custom_nacls : {}
+  vpc_id     = one(aws_vpc.default[*].id)
+  subnet_ids = each.value.subnet_ids
+
+  dynamic "ingress" {
+    for_each = each.value.ingress_rules
+    content {
+      rule_no         = ingress.value.rule_no
+      action          = ingress.value.action
+      protocol        = ingress.value.protocol
+      from_port       = ingress.value.from_port
+      to_port         = ingress.value.to_port
+      cidr_block      = lookup(ingress.value, "cidr_block", null)
+      ipv6_cidr_block = lookup(ingress.value, "ipv6_cidr_block", null)
+    }
+  }
+
+  dynamic "egress" {
+    for_each = each.value.egress_rules
+    content {
+      rule_no         = egress.value.rule_no
+      action          = egress.value.action
+      protocol        = egress.value.protocol
+      from_port       = egress.value.from_port
+      to_port         = egress.value.to_port
+      cidr_block      = lookup(egress.value, "cidr_block", null)
+      ipv6_cidr_block = lookup(egress.value, "ipv6_cidr_block", null)
+    }
+  }
+
+  tags = merge(
+    module.labels.tags,
+    { "Name" = format("%s-%s-nacl", module.labels.id, each.key) }
+  )
+}

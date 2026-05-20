@@ -73,3 +73,16 @@ output "arn" {
   value       = join("", aws_flow_log.vpc_flow_log[*].arn)
   description = "Amazon Resource Name (ARN) of VPC"
 }
+
+output "vpc_endpoint_ids" {
+  value = merge(
+    { for k, v in aws_vpc_endpoint.gateway : k => v.id },
+    { for k, v in aws_vpc_endpoint.interface : k => v.id }
+  )
+  description = "Map of VPC endpoint IDs keyed by service name."
+}
+
+output "custom_nacl_ids" {
+  value       = { for k, v in aws_network_acl.custom : k => v.id }
+  description = "Map of custom NACL IDs keyed by name suffix."
+}
