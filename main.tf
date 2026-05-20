@@ -478,6 +478,7 @@ resource "aws_vpc_endpoint" "gateway" {
   service_name      = "com.amazonaws.${data.aws_region.current.region}.${each.key}"
   vpc_endpoint_type = "Gateway"
   route_table_ids   = each.value.route_table_ids
+  ip_address_type   = each.value.ip_address_type
   tags = merge(
     module.labels.tags,
     { "Name" = format("%s-%s-gwep", module.labels.id, each.key) }
@@ -495,6 +496,7 @@ resource "aws_vpc_endpoint" "interface" {
   subnet_ids          = each.value.subnet_ids
   security_group_ids  = each.value.security_group_ids
   private_dns_enabled = each.value.private_dns_enabled
+  ip_address_type     = each.value.ip_address_type
   tags = merge(
     module.labels.tags,
     { "Name" = format("%s-%s-ifep", module.labels.id, each.key) }
@@ -502,41 +504,82 @@ resource "aws_vpc_endpoint" "interface" {
 }
 
 ##-----------------------------------------------------------------------------
-## Custom Network ACLs — per-subnet NACLs beyond the default.
+## Custom Network ACLs — shell resource only; rules managed via separate
+## aws_network_acl_rule resources to avoid perpetual inline-rule diffs.
 ##-----------------------------------------------------------------------------
 resource "aws_network_acl" "custom" {
   for_each   = var.enable ? var.custom_nacls : {}
   vpc_id     = one(aws_vpc.default[*].id)
   subnet_ids = each.value.subnet_ids
-
-  dynamic "ingress" {
-    for_each = each.value.ingress_rules
-    content {
-      rule_no         = ingress.value.rule_no
-      action          = ingress.value.action
-      protocol        = ingress.value.protocol
-      from_port       = ingress.value.from_port
-      to_port         = ingress.value.to_port
-      cidr_block      = lookup(ingress.value, "cidr_block", null)
-      ipv6_cidr_block = lookup(ingress.value, "ipv6_cidr_block", null)
-    }
-  }
-
-  dynamic "egress" {
-    for_each = each.value.egress_rules
-    content {
-      rule_no         = egress.value.rule_no
-      action          = egress.value.action
-      protocol        = egress.value.protocol
-      from_port       = egress.value.from_port
-      to_port         = egress.value.to_port
-      cidr_block      = lookup(egress.value, "cidr_block", null)
-      ipv6_cidr_block = lookup(egress.value, "ipv6_cidr_block", null)
-    }
-  }
-
   tags = merge(
     module.labels.tags,
     { "Name" = format("%s-%s-nacl", module.labels.id, each.key) }
   )
+}
+
+locals {
+  _nacl_ingress = flatten([
+    for nacl_key, nacl in(var.enable ? var.custom_nacls : {}) : [
+      for rule in nacl.ingress_rules : {
+        nacl_key        = nacl_key
+        rule_no         = rule.rule_no
+        action          = rule.action
+        protocol        = rule.protocol
+        from_port       = rule.from_port
+        to_port         = rule.to_port
+        cidr_block      = rule.cidr_block
+        ipv6_cidr_block = rule.ipv6_cidr_block
+      }
+    ]
+  ])
+  _nacl_egress = flatten([
+    for nacl_key, nacl in(var.enable ? var.custom_nacls : {}) : [
+      for rule in nacl.egress_rules : {
+        nacl_key        = nacl_key
+        rule_no         = rule.rule_no
+        action          = rule.action
+        protocol        = rule.protocol
+        from_port       = rule.from_port
+        to_port         = rule.to_port
+        cidr_block      = rule.cidr_block
+        ipv6_cidr_block = rule.ipv6_cidr_block
+      }
+    ]
+  ])
+}
+
+resource "aws_network_acl_rule" "custom_ingress" {
+  for_each        = { for r in local._nacl_ingress : "${r.nacl_key}-${r.rule_no}" => r }
+  network_acl_id  = aws_network_acl.custom[each.value.nacl_key].id
+  rule_number     = each.value.rule_no
+  egress          = false
+  protocol        = each.value.protocol
+  rule_action     = each.value.action
+  from_port       = each.value.protocol == "-1" ? 0 : each.value.from_port
+  to_port         = each.value.protocol == "-1" ? 0 : each.value.to_port
+  cidr_block      = each.value.cidr_block
+  ipv6_cidr_block = each.value.ipv6_cidr_block
+}
+
+resource "aws_network_acl_rule" "custom_egress" {
+  for_each        = { for r in local._nacl_egress : "${r.nacl_key}-${r.rule_no}" => r }
+  network_acl_id  = aws_network_acl.custom[each.value.nacl_key].id
+  rule_number     = each.value.rule_no
+  egress          = true
+  protocol        = each.value.protocol
+  rule_action     = each.value.action
+  from_port       = each.value.protocol == "-1" ? 0 : each.value.from_port
+  to_port         = each.value.protocol == "-1" ? 0 : each.value.to_port
+  cidr_block      = each.value.cidr_block
+  ipv6_cidr_block = each.value.ipv6_cidr_block
+}
+
+##-----------------------------------------------------------------------------
+## VPC BPA exclusion — creates a per-VPC exclusion when the account has
+## Block Public Access enabled but this VPC needs internet connectivity.
+##-----------------------------------------------------------------------------
+resource "aws_vpc_block_public_access_exclusion" "this" {
+  count                           = var.enable && var.vpc_bpa_exclusion_mode != null ? 1 : 0
+  vpc_id                          = one(aws_vpc.default[*].id)
+  internet_gateway_exclusion_mode = var.vpc_bpa_exclusion_mode
 }

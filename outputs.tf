@@ -86,3 +86,8 @@ output "custom_nacl_ids" {
   value       = { for k, v in aws_network_acl.custom : k => v.id }
   description = "Map of custom NACL IDs keyed by name suffix."
 }
+
+output "vpc_bpa_exclusion_id" {
+  value       = one(aws_vpc_block_public_access_exclusion.this[*].id)
+  description = "ID of the VPC BPA exclusion, if created."
+}
