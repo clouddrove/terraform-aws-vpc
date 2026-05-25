@@ -1,18 +1,15 @@
-name: readme workflow
-permissions:
-  contents: write
+name: Readme Workflow
 on:
   push:
     branches:
       - master
     paths-ignore:
       - 'README.md'
+      - 'docs/**'
   workflow_dispatch:
 jobs:
-  assignee:
-    uses: clouddrove/github-shared-workflows/.github/workflows/readme.yml@v2.1.6
-    permissions:
-      contents: write
+  README:
+    uses: clouddrove/github-shared-workflows/.github/workflows/readme.yml@v2
     secrets:
-      TOKEN : ${{ secrets.GITHUB_TOKEN }}
+      TOKEN : ${{ secrets.GITHUB }}
       SLACK_WEBHOOK_TERRAFORM: ${{ secrets.SLACK_WEBHOOK_TERRAFORM }}
