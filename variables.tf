@@ -361,3 +361,55 @@ variable "block_http_traffic" {
   default     = true
   description = "True when http traffic has to be blocked for S3."
 }
+
+variable "gateway_vpc_endpoints" {
+  description = "Gateway VPC Endpoints to create. Key is service name (e.g. s3, dynamodb)."
+  type = map(object({
+    route_table_ids = optional(list(string), [])
+    ip_address_type = optional(string, "ipv4")
+  }))
+  default = {}
+}
+
+variable "interface_vpc_endpoints" {
+  description = "Interface VPC Endpoints to create. Key is service name (e.g. ssm, ecr.api)."
+  type = map(object({
+    subnet_ids          = optional(list(string), [])
+    security_group_ids  = optional(list(string), [])
+    private_dns_enabled = optional(bool, true)
+    ip_address_type     = optional(string, "ipv4")
+  }))
+  default = {}
+}
+
+variable "custom_nacls" {
+  description = "Custom Network ACLs to create. Key used as name suffix. Rules managed via aws_network_acl_rule (no inline blocks)."
+  type = map(object({
+    subnet_ids = optional(list(string), [])
+    ingress_rules = optional(list(object({
+      rule_no         = number
+      action          = string
+      protocol        = string
+      from_port       = optional(number, 0)
+      to_port         = optional(number, 0)
+      cidr_block      = optional(string)
+      ipv6_cidr_block = optional(string)
+    })), [])
+    egress_rules = optional(list(object({
+      rule_no         = number
+      action          = string
+      protocol        = string
+      from_port       = optional(number, 0)
+      to_port         = optional(number, 0)
+      cidr_block      = optional(string)
+      ipv6_cidr_block = optional(string)
+    })), [])
+  }))
+  default = {}
+}
+
+variable "vpc_bpa_exclusion_mode" {
+  type        = string
+  default     = null
+  description = "If set, creates a VPC BPA exclusion. Valid values: allowed-bidirectional, allowed-egress. Use when account-level Block Public Access is enabled but this VPC needs internet access."
+}
