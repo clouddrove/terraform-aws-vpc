@@ -9,6 +9,7 @@
 | block\_http\_traffic | True when http traffic has to be blocked for S3. | `bool` | `true` | no |
 | cidr\_block | CIDR for the VPC. | `string` | `""` | no |
 | create\_flow\_log\_cloudwatch\_iam\_role | Flag to be set true when cloudwatch iam role is to be created when flow log destination type is set to cloudwatch logs. | `bool` | `false` | no |
+| custom\_nacls | Custom Network ACLs to create. Key used as name suffix. Rules managed via aws\_network\_acl\_rule (no inline blocks). | <pre>map(object({<br>    subnet_ids = optional(list(string), [])<br>    ingress_rules = optional(list(object({<br>      rule_no         = number<br>      action          = string<br>      protocol        = string<br>      from_port       = optional(number, 0)<br>      to_port         = optional(number, 0)<br>      cidr_block      = optional(string)<br>      ipv6_cidr_block = optional(string)<br>    })), [])<br>    egress_rules = optional(list(object({<br>      rule_no         = number<br>      action          = string<br>      protocol        = string<br>      from_port       = optional(number, 0)<br>      to_port         = optional(number, 0)<br>      cidr_block      = optional(string)<br>      ipv6_cidr_block = optional(string)<br>    })), [])<br>  }))</pre> | `{}` | no |
 | default\_network\_acl\_egress | List of maps of egress rules to set on the Default Network ACL | `list(map(string))` | <pre>[<br>  {<br>    "action": "allow",<br>    "cidr_block": "0.0.0.0/0",<br>    "from_port": 0,<br>    "protocol": "-1",<br>    "rule_no": 100,<br>    "to_port": 0<br>  },<br>  {<br>    "action": "allow",<br>    "from_port": 0,<br>    "ipv6_cidr_block": "::/0",<br>    "protocol": "-1",<br>    "rule_no": 101,<br>    "to_port": 0<br>  }<br>]</pre> | no |
 | default\_network\_acl\_ingress | List of maps of ingress rules to set on the Default Network ACL | `list(map(string))` | <pre>[<br>  {<br>    "action": "allow",<br>    "cidr_block": "0.0.0.0/0",<br>    "from_port": 0,<br>    "protocol": "-1",<br>    "rule_no": 100,<br>    "to_port": 0<br>  },<br>  {<br>    "action": "allow",<br>    "from_port": 0,<br>    "ipv6_cidr_block": "::/0",<br>    "protocol": "-1",<br>    "rule_no": 101,<br>    "to_port": 0<br>  }<br>]</pre> | no |
 | default\_route\_table\_routes | Configuration block of routes. | `list(map(string))` | `[]` | no |
@@ -39,7 +40,9 @@
 | flow\_log\_per\_hour\_partition | (Optional) Indicates whether to partition the flow log per hour. This reduces the cost and response time for queries | `bool` | `false` | no |
 | flow\_log\_traffic\_type | The type of traffic to capture. Valid values: ACCEPT, REJECT, ALL | `string` | `"ALL"` | no |
 | flow\_logs\_bucket\_name | Name  (e.g. `mybucket` or `bucket101`). | `string` | `null` | no |
+| gateway\_vpc\_endpoints | Gateway VPC Endpoints to create. Key is service name (e.g. s3, dynamodb). | <pre>map(object({<br>    route_table_ids = optional(list(string), [])<br>    ip_address_type = optional(string, "ipv4")<br>  }))</pre> | `{}` | no |
 | instance\_tenancy | A tenancy option for instances launched into the VPC. | `string` | `"default"` | no |
+| interface\_vpc\_endpoints | Interface VPC Endpoints to create. Key is service name (e.g. ssm, ecr.api). | <pre>map(object({<br>    subnet_ids          = optional(list(string), [])<br>    security_group_ids  = optional(list(string), [])<br>    private_dns_enabled = optional(bool, true)<br>    ip_address_type     = optional(string, "ipv4")<br>  }))</pre> | `{}` | no |
 | ipam\_pool\_enable | Flag to be set true when using ipam for cidr. | `bool` | `false` | no |
 | ipv4\_ipam\_pool\_id | The ID of an IPv4 IPAM pool you want to use for allocating this VPC's CIDR. | `string` | `""` | no |
 | ipv4\_netmask\_length | The netmask length of the IPv4 CIDR you want to allocate to this VPC. Requires specifying a ipv4\_ipam\_pool\_id | `string` | `null` | no |
@@ -54,6 +57,8 @@
 | repository | Terraform current module repo | `string` | `"https://github.com/clouddrove/terraform-aws-vpc"` | no |
 | restrict\_default\_sg | Flag to control the restrict default sg creation. | `bool` | `true` | no |
 | s3\_sse\_algorithm | Server-side encryption algorithm to use. Valid values are AES256 and aws:kms | `string` | `"aws:kms"` | no |
+| tags | A map of tags to add to all resources | `map(string)` | `{}` | no |
+| vpc\_bpa\_exclusion\_mode | If set, creates a VPC BPA exclusion. Valid values: allowed-bidirectional, allowed-egress. Use when account-level Block Public Access is enabled but this VPC needs internet access. | `string` | `null` | no |
 | vpc\_flow\_log\_permissions\_boundary | The ARN of the Permissions Boundary for the VPC Flow Log IAM Role | `string` | `null` | no |
 
 ## Outputs
@@ -61,16 +66,19 @@
 | Name | Description |
 |------|-------------|
 | arn | Amazon Resource Name (ARN) of VPC |
+| custom\_nacl\_ids | Map of custom NACL IDs keyed by name suffix. |
 | igw\_id | The ID of the Internet Gateway. |
 | ipv6\_cidr\_block | The IPv6 CIDR block. |
 | ipv6\_cidr\_block\_network\_border\_group | The IPv6 Network Border Group Zone name |
 | ipv6\_egress\_only\_igw\_id | The ID of the egress-only Internet Gateway |
 | tags | A mapping of tags to assign to the resource. |
 | vpc\_arn | The ARN of the VPC |
+| vpc\_bpa\_exclusion\_id | ID of the VPC BPA exclusion, if created. |
 | vpc\_cidr\_block | The CIDR block of the VPC. |
 | vpc\_default\_network\_acl\_id | The ID of the network ACL created by default on VPC creation. |
 | vpc\_default\_route\_table\_id | The ID of the route table created by default on VPC creation. |
 | vpc\_default\_security\_group\_id | The ID of the security group created by default on VPC creation. |
+| vpc\_endpoint\_ids | Map of VPC endpoint IDs keyed by service name. |
 | vpc\_id | The ID of the VPC. |
 | vpc\_ipv6\_association\_id | The association ID for the IPv6 CIDR block. |
 | vpc\_main\_route\_table\_id | The ID of the main route table associated with this VPC. |
