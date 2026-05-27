@@ -68,6 +68,26 @@ resource "aws_default_vpc" "default" {
   }
 }
 
+data "aws_availability_zones" "available" {
+  count = var.enable && var.enable_default_vpc && var.manage_default_vpc_default_subnets ? 1 : 0
+  state = "available"
+}
+
+resource "aws_default_subnet" "default" {
+  for_each = var.enable && var.enable_default_vpc && var.manage_default_vpc_default_subnets ? toset(data.aws_availability_zones.available[0].names) : toset([])
+
+  availability_zone = each.value
+  force_destroy     = var.default_vpc_force_destroy
+  tags = merge(
+    module.labels.tags,
+    {
+      "Name" = format("%s-default-subnet-%s", module.labels.id, each.value)
+    }
+  )
+
+  depends_on = [aws_default_vpc.default]
+}
+
 locals {
   vpc_id                        = one(concat(aws_vpc.default[*].id, aws_default_vpc.default[*].id))
   vpc_default_route_table_id    = one(concat(aws_vpc.default[*].default_route_table_id, aws_default_vpc.default[*].default_route_table_id))
@@ -98,6 +118,24 @@ data "aws_internet_gateway" "default" {
   filter {
     name   = "attachment.vpc-id"
     values = [local.vpc_id]
+  }
+
+  depends_on = [aws_default_vpc.default]
+}
+
+resource "terraform_data" "default_vpc_internet_gateway_destroy" {
+  count = var.enable && var.enable_default_vpc && var.default_vpc_force_destroy && var.delete_default_vpc_internet_gateway_on_destroy ? 1 : 0
+
+  input = {
+    internet_gateway_id = data.aws_internet_gateway.default[0].id
+    region              = data.aws_region.current.name
+    vpc_id              = local.vpc_id
+  }
+
+  provisioner "local-exec" {
+    when        = destroy
+    interpreter = ["/bin/sh", "-c"]
+    command     = "aws ec2 detach-internet-gateway --region '${self.input.region}' --internet-gateway-id '${self.input.internet_gateway_id}' --vpc-id '${self.input.vpc_id}' || true\naws ec2 delete-internet-gateway --region '${self.input.region}' --internet-gateway-id '${self.input.internet_gateway_id}' || true"
   }
 
   depends_on = [aws_default_vpc.default]

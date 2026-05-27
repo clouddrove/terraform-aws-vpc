@@ -56,6 +56,18 @@ variable "default_vpc_force_destroy" {
   description = "Whether destroying the aws_default_vpc resource should delete the default VPC. By default, destroy only removes it from Terraform state."
 }
 
+variable "manage_default_vpc_default_subnets" {
+  type        = bool
+  default     = true
+  description = "When enable_default_vpc is true, adopt and manage the default subnets in each availability zone."
+}
+
+variable "delete_default_vpc_internet_gateway_on_destroy" {
+  type        = bool
+  default     = true
+  description = "When enable_default_vpc and default_vpc_force_destroy are true, detach and delete the default VPC internet gateway during terraform destroy."
+}
+
 variable "restrict_default_sg" {
   type        = bool
   default     = true

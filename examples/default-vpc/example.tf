@@ -19,5 +19,7 @@ module "vpc" {
   enable_default_vpc = true
 
   # Set this to true when the default VPC should be deleted from AWS on destroy.
-  default_vpc_force_destroy = true
+  default_vpc_force_destroy                      = true
+  manage_default_vpc_default_subnets             = true
+  delete_default_vpc_internet_gateway_on_destroy = true
 }
