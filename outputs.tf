@@ -1,52 +1,52 @@
 #Module      : VPC
 #Description : Terraform module to VPC outputs.
 output "vpc_id" {
-  value       = join("", aws_vpc.default[*].id)
+  value       = join("", concat(aws_vpc.default[*].id, aws_default_vpc.default[*].id))
   description = "The ID of the VPC."
 }
 
 output "vpc_arn" {
-  value       = join("", aws_vpc.default[*].arn)
+  value       = join("", concat(aws_vpc.default[*].arn, aws_default_vpc.default[*].arn))
   description = "The ARN of the VPC"
 }
 
 output "vpc_cidr_block" {
-  value       = join("", aws_vpc.default[*].cidr_block)
+  value       = join("", concat(aws_vpc.default[*].cidr_block, aws_default_vpc.default[*].cidr_block))
   description = "The CIDR block of the VPC."
 }
 
 output "ipv6_cidr_block" {
-  value       = join("", aws_vpc.default[*].ipv6_cidr_block)
+  value       = join("", concat(aws_vpc.default[*].ipv6_cidr_block, aws_default_vpc.default[*].ipv6_cidr_block))
   description = "The IPv6 CIDR block."
 }
 
 output "vpc_ipv6_association_id" {
-  value       = join("", aws_vpc.default[*].ipv6_association_id)
+  value       = join("", concat(aws_vpc.default[*].ipv6_association_id, aws_default_vpc.default[*].ipv6_association_id))
   description = "The association ID for the IPv6 CIDR block."
 }
 
 output "ipv6_cidr_block_network_border_group" {
-  value       = join("", aws_vpc.default[*].ipv6_cidr_block_network_border_group)
+  value       = join("", concat(aws_vpc.default[*].ipv6_cidr_block_network_border_group, aws_default_vpc.default[*].ipv6_cidr_block_network_border_group))
   description = "The IPv6 Network Border Group Zone name"
 }
 
 output "vpc_main_route_table_id" {
-  value       = join("", aws_vpc.default[*].main_route_table_id)
+  value       = join("", concat(aws_vpc.default[*].main_route_table_id, aws_default_vpc.default[*].main_route_table_id))
   description = "The ID of the main route table associated with this VPC."
 }
 
 output "vpc_default_network_acl_id" {
-  value       = join("", aws_vpc.default[*].default_network_acl_id)
+  value       = join("", concat(aws_vpc.default[*].default_network_acl_id, aws_default_vpc.default[*].default_network_acl_id))
   description = "The ID of the network ACL created by default on VPC creation."
 }
 
 output "vpc_default_security_group_id" {
-  value       = join("", aws_vpc.default[*].default_security_group_id)
+  value       = join("", concat(aws_vpc.default[*].default_security_group_id, aws_default_vpc.default[*].default_security_group_id))
   description = "The ID of the security group created by default on VPC creation."
 }
 
 output "vpc_default_route_table_id" {
-  value       = join("", aws_vpc.default[*].default_route_table_id)
+  value       = join("", concat(aws_vpc.default[*].default_route_table_id, aws_default_vpc.default[*].default_route_table_id))
   description = "The ID of the route table created by default on VPC creation."
 }
 
@@ -60,7 +60,7 @@ output "tags" {
 #Description : Terraform internet gateway module output variables.
 ####--------------------------------------------------------------------------------------
 output "igw_id" {
-  value       = join("", aws_internet_gateway.default[*].id)
+  value       = join("", concat(aws_internet_gateway.default[*].id, data.aws_internet_gateway.default[*].id))
   description = "The ID of the Internet Gateway."
 }
 

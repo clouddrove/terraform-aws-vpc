@@ -44,6 +44,18 @@ variable "enable" {
   description = "Flag to control the vpc creation."
 }
 
+variable "enable_default_vpc" {
+  type        = bool
+  default     = false
+  description = "When true, manage the regional default VPC with aws_default_vpc instead of creating a custom aws_vpc. This adopts an existing default VPC or creates one if it is missing."
+}
+
+variable "default_vpc_force_destroy" {
+  type        = bool
+  default     = false
+  description = "Whether destroying the aws_default_vpc resource should delete the default VPC. By default, destroy only removes it from Terraform state."
+}
+
 variable "restrict_default_sg" {
   type        = bool
   default     = true
