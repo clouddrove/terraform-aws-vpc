@@ -52,7 +52,7 @@ variable "enable_default_vpc" {
 
 variable "default_vpc_force_destroy" {
   type        = bool
-  default     = false
+  default     = true
   description = "Whether destroying the aws_default_vpc resource should delete the default VPC. By default, destroy only removes it from Terraform state."
 }
 
