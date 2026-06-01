@@ -23,7 +23,7 @@ module "labels" {
 resource "aws_vpc" "default" {
   #checkov:skip=CKV2_AWS_11: flow log created via aws_flow_log.vpc_flow_log when var.enable_flow_log=true
   #checkov:skip=CKV2_AWS_12: default SG traffic controlled by var.default_security_group_ingress/egress
-  count                                = var.enable ? 1 : 0
+  count                                = var.enable && !var.enable_default_vpc ? 1 : 0
   cidr_block                           = var.ipam_pool_enable ? null : var.cidr_block
   ipv4_ipam_pool_id                    = var.ipv4_ipam_pool_id
   ipv4_netmask_length                  = var.ipv4_netmask_length
@@ -47,15 +47,63 @@ resource "aws_vpc" "default" {
   }
 }
 
+resource "aws_default_vpc" "default" {
+  count                                = var.enable && var.enable_default_vpc ? 1 : 0
+  enable_dns_hostnames                 = var.dns_hostnames_enabled
+  enable_dns_support                   = var.dns_support_enabled
+  assign_generated_ipv6_cidr_block     = var.assign_generated_ipv6_cidr_block
+  ipv6_cidr_block                      = var.ipv6_cidr_block
+  ipv6_ipam_pool_id                    = var.ipv6_ipam_pool_id
+  ipv6_netmask_length                  = var.ipv6_netmask_length
+  ipv6_cidr_block_network_border_group = var.ipv6_cidr_block_network_border_group
+  enable_network_address_usage_metrics = var.enable_network_address_usage_metrics
+  force_destroy                        = var.default_vpc_force_destroy
+  tags                                 = module.labels.tags
+  lifecycle {
+    ignore_changes = [
+      tags,
+      tags["kubernetes.io"],
+      tags["SubnetType"],
+    ]
+  }
+}
+
+data "aws_availability_zones" "available" {
+  count = var.enable && var.enable_default_vpc && var.manage_default_vpc_default_subnets ? 1 : 0
+  state = "available"
+}
+
+resource "aws_default_subnet" "default" {
+  for_each = var.enable && var.enable_default_vpc && var.manage_default_vpc_default_subnets ? toset(data.aws_availability_zones.available[0].names) : toset([])
+
+  availability_zone = each.value
+  force_destroy     = var.default_vpc_force_destroy
+  tags = merge(
+    module.labels.tags,
+    {
+      "Name" = format("%s-default-subnet-%s", module.labels.id, each.value)
+    }
+  )
+
+  depends_on = [aws_default_vpc.default]
+}
+
+locals {
+  vpc_id                        = one(concat(aws_vpc.default[*].id, aws_default_vpc.default[*].id))
+  vpc_default_route_table_id    = one(concat(aws_vpc.default[*].default_route_table_id, aws_default_vpc.default[*].default_route_table_id))
+  vpc_default_network_acl_id    = one(concat(aws_vpc.default[*].default_network_acl_id, aws_default_vpc.default[*].default_network_acl_id))
+  vpc_default_security_group_id = one(concat(aws_vpc.default[*].default_security_group_id, aws_default_vpc.default[*].default_security_group_id))
+}
+
 resource "aws_vpc_ipv4_cidr_block_association" "default" {
   for_each   = { for k in var.additional_cidr_block : k => k if var.enable }
-  vpc_id     = one(aws_vpc.default[*].id)
+  vpc_id     = local.vpc_id
   cidr_block = each.key
 }
 
 resource "aws_internet_gateway" "default" {
-  count  = var.enable ? 1 : 0
-  vpc_id = one(aws_vpc.default[*].id)
+  count  = var.enable && !var.enable_default_vpc ? 1 : 0
+  vpc_id = local.vpc_id
   tags = merge(
     module.labels.tags,
     {
@@ -64,9 +112,38 @@ resource "aws_internet_gateway" "default" {
   )
 }
 
+data "aws_internet_gateway" "default" {
+  count = var.enable && var.enable_default_vpc ? 1 : 0
+
+  filter {
+    name   = "attachment.vpc-id"
+    values = [local.vpc_id]
+  }
+
+  depends_on = [aws_default_vpc.default]
+}
+
+resource "terraform_data" "default_vpc_internet_gateway_destroy" {
+  count = var.enable && var.enable_default_vpc && var.default_vpc_force_destroy && var.delete_default_vpc_internet_gateway_on_destroy ? 1 : 0
+
+  input = {
+    internet_gateway_id = data.aws_internet_gateway.default[0].id
+    region              = data.aws_region.current.name
+    vpc_id              = local.vpc_id
+  }
+
+  provisioner "local-exec" {
+    when        = destroy
+    interpreter = ["/bin/sh", "-c"]
+    command     = "aws ec2 detach-internet-gateway --region '${self.input.region}' --internet-gateway-id '${self.input.internet_gateway_id}' --vpc-id '${self.input.vpc_id}' || true\naws ec2 delete-internet-gateway --region '${self.input.region}' --internet-gateway-id '${self.input.internet_gateway_id}' || true"
+  }
+
+  depends_on = [aws_default_vpc.default]
+}
+
 resource "aws_egress_only_internet_gateway" "default" {
   count  = var.enable && var.enabled_ipv6_egress_only_internet_gateway ? 1 : 0
-  vpc_id = one(aws_vpc.default[*].id)
+  vpc_id = local.vpc_id
   tags   = module.labels.tags
 }
 ##-----------------------------------------------------------------------------
@@ -75,7 +152,7 @@ resource "aws_egress_only_internet_gateway" "default" {
 resource "aws_default_security_group" "default" {
   #checkov:skip=CKV2_AWS_12: default SG rules controlled by var.default_security_group_ingress/egress; defaults to no rules
   count  = var.enable && var.restrict_default_sg == true ? 1 : 0
-  vpc_id = one(aws_vpc.default[*].id)
+  vpc_id = local.vpc_id
   dynamic "ingress" {
     for_each = var.default_security_group_ingress
     content {
@@ -116,7 +193,7 @@ resource "aws_default_security_group" "default" {
 ##-----------------------------------------------------------------------------
 resource "aws_default_route_table" "default" {
   count                  = var.enable && var.aws_default_route_table ? 1 : 0
-  default_route_table_id = aws_vpc.default[0].default_route_table_id
+  default_route_table_id = local.vpc_default_route_table_id
   dynamic "route" {
     for_each = var.default_route_table_routes
     content {
@@ -162,7 +239,7 @@ resource "aws_vpc_dhcp_options" "vpc_dhcp" {
 
 resource "aws_vpc_dhcp_options_association" "this" {
   count           = var.enable && var.enable_dhcp_options ? 1 : 0
-  vpc_id          = one(aws_vpc.default[*].id)
+  vpc_id          = local.vpc_id
   dhcp_options_id = one(aws_vpc_dhcp_options.vpc_dhcp[*].id)
 }
 
@@ -414,7 +491,7 @@ resource "aws_flow_log" "vpc_flow_log" {
   log_format               = var.flow_log_log_format
   iam_role_arn             = var.create_flow_log_cloudwatch_iam_role ? aws_iam_role.vpc_flow_log_cloudwatch[0].arn : var.flow_log_iam_role_arn
   traffic_type             = var.flow_log_traffic_type
-  vpc_id                   = one(aws_vpc.default[*].id)
+  vpc_id                   = local.vpc_id
   max_aggregation_interval = var.flow_log_max_aggregation_interval
   dynamic "destination_options" {
     for_each = var.flow_log_destination_type == "s3" ? [true] : []
@@ -432,7 +509,7 @@ resource "aws_flow_log" "vpc_flow_log" {
 ##-------------------------------------------------------------------------------------------------------
 resource "aws_default_network_acl" "default" {
   count                  = var.enable && var.aws_default_network_acl ? 1 : 0
-  default_network_acl_id = aws_vpc.default[0].default_network_acl_id
+  default_network_acl_id = local.vpc_default_network_acl_id
   dynamic "ingress" {
     for_each = var.default_network_acl_ingress
     content {
@@ -474,7 +551,7 @@ resource "aws_default_network_acl" "default" {
 ##-----------------------------------------------------------------------------
 resource "aws_vpc_endpoint" "gateway" {
   for_each          = var.enable ? var.gateway_vpc_endpoints : {}
-  vpc_id            = one(aws_vpc.default[*].id)
+  vpc_id            = local.vpc_id
   service_name      = "com.amazonaws.${data.aws_region.current.region}.${each.key}"
   vpc_endpoint_type = "Gateway"
   route_table_ids   = each.value.route_table_ids
@@ -490,7 +567,7 @@ resource "aws_vpc_endpoint" "gateway" {
 ##-----------------------------------------------------------------------------
 resource "aws_vpc_endpoint" "interface" {
   for_each            = var.enable ? var.interface_vpc_endpoints : {}
-  vpc_id              = one(aws_vpc.default[*].id)
+  vpc_id              = local.vpc_id
   service_name        = "com.amazonaws.${data.aws_region.current.region}.${each.key}"
   vpc_endpoint_type   = "Interface"
   subnet_ids          = each.value.subnet_ids
@@ -509,7 +586,7 @@ resource "aws_vpc_endpoint" "interface" {
 ##-----------------------------------------------------------------------------
 resource "aws_network_acl" "custom" {
   for_each   = var.enable ? var.custom_nacls : {}
-  vpc_id     = one(aws_vpc.default[*].id)
+  vpc_id     = local.vpc_id
   subnet_ids = each.value.subnet_ids
   tags = merge(
     module.labels.tags,
@@ -580,6 +657,6 @@ resource "aws_network_acl_rule" "custom_egress" {
 ##-----------------------------------------------------------------------------
 resource "aws_vpc_block_public_access_exclusion" "this" {
   count                           = var.enable && var.vpc_bpa_exclusion_mode != null ? 1 : 0
-  vpc_id                          = one(aws_vpc.default[*].id)
+  vpc_id                          = local.vpc_id
   internet_gateway_exclusion_mode = var.vpc_bpa_exclusion_mode
 }

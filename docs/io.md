@@ -15,6 +15,8 @@
 | default\_route\_table\_routes | Configuration block of routes. | `list(map(string))` | `[]` | no |
 | default\_security\_group\_egress | List of maps of egress rules to set on the default security group | `list(map(string))` | `[]` | no |
 | default\_security\_group\_ingress | List of maps of ingress rules to set on the default security group | `list(map(string))` | `[]` | no |
+| default\_vpc\_force\_destroy | Whether destroying the aws\_default\_vpc resource should delete the default VPC. By default, destroy only removes it from Terraform state. | `bool` | `false` | no |
+| delete\_default\_vpc\_internet\_gateway\_on\_destroy | When enable\_default\_vpc and default\_vpc\_force\_destroy are true, detach and delete the default VPC internet gateway during terraform destroy. | `bool` | `true` | no |
 | dhcp\_options\_domain\_name | Specifies DNS name for DHCP options set (requires enable\_dhcp\_options set to true) | `string` | `"service.consul"` | no |
 | dhcp\_options\_domain\_name\_servers | Specify a list of DNS server addresses for DHCP options set, default to AWS provided (requires enable\_dhcp\_options set to true) | `list(string)` | <pre>[<br>  "AmazonProvidedDNS"<br>]</pre> | no |
 | dhcp\_options\_netbios\_name\_servers | Specify a list of netbios servers for DHCP options set (requires enable\_dhcp\_options set to true) | `list(string)` | `[]` | no |
@@ -23,6 +25,7 @@
 | dns\_hostnames\_enabled | A boolean flag to enable/disable DNS hostnames in the VPC. | `bool` | `true` | no |
 | dns\_support\_enabled | A boolean flag to enable/disable DNS support in the VPC. | `bool` | `true` | no |
 | enable | Flag to control the vpc creation. | `bool` | `true` | no |
+| enable\_default\_vpc | When true, manage the regional default VPC with aws\_default\_vpc instead of creating a custom aws\_vpc. This adopts an existing default VPC or creates one if it is missing. | `bool` | `false` | no |
 | enable\_dhcp\_options | Should be true if you want to specify a DHCP options set with a custom domain name, DNS servers, NTP servers, netbios servers, and/or netbios server type | `bool` | `false` | no |
 | enable\_flow\_log | Enable vpc\_flow\_log logs. | `bool` | `false` | no |
 | enable\_key\_rotation | Specifies whether key rotation is enabled. Defaults to true(security best practice) | `bool` | `true` | no |
@@ -52,6 +55,7 @@
 | ipv6\_netmask\_length | The netmask length of the IPv4 CIDR you want to allocate to this VPC. Requires specifying a ipv6\_ipam\_pool\_id | `string` | `null` | no |
 | kms\_key\_deletion\_window | KMS Key deletion window in days. | `number` | `10` | no |
 | label\_order | Label order, e.g. `name`,`application`. | `list(any)` | <pre>[<br>  "name",<br>  "environment"<br>]</pre> | no |
+| manage\_default\_vpc\_default\_subnets | When enable\_default\_vpc is true, adopt and manage the default subnets in each availability zone. | `bool` | `true` | no |
 | managedby | ManagedBy, eg 'CloudDrove' | `string` | `"hello@clouddrove.com"` | no |
 | name | Name  (e.g. `app` or `cluster`). | `string` | `""` | no |
 | repository | Terraform current module repo | `string` | `"https://github.com/clouddrove/terraform-aws-vpc"` | no |
@@ -82,4 +86,3 @@
 | vpc\_id | The ID of the VPC. |
 | vpc\_ipv6\_association\_id | The association ID for the IPv6 CIDR block. |
 | vpc\_main\_route\_table\_id | The ID of the main route table associated with this VPC. |
-

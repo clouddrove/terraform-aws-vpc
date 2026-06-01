@@ -82,3 +82,18 @@ usage: |-
       dhcp_options_domain_name_servers = ["127.0.0.1", "10.10.0.2"]
      }
   ```
+
+  ### default vpc example
+  ```hcl
+      module "vpc" {
+      source             = "clouddrove/vpc/aws"
+      version            = "2.0.0"
+      name               = "vpc"
+      environment        = "example"
+      enable_default_vpc = true
+      # Delete the default VPC from AWS when running terraform destroy.
+      default_vpc_force_destroy                      = true
+      manage_default_vpc_default_subnets             = true
+      delete_default_vpc_internet_gateway_on_destroy = true
+     }
+  ```
