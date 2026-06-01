@@ -15,7 +15,7 @@
 | default\_route\_table\_routes | Configuration block of routes. | `list(map(string))` | `[]` | no |
 | default\_security\_group\_egress | List of maps of egress rules to set on the default security group | `list(map(string))` | `[]` | no |
 | default\_security\_group\_ingress | List of maps of ingress rules to set on the default security group | `list(map(string))` | `[]` | no |
-| default\_vpc\_force\_destroy | Whether destroying the aws\_default\_vpc resource should delete the default VPC. By default, destroy only removes it from Terraform state. | `bool` | `false` | no |
+| default\_vpc\_force\_destroy | Whether destroying the aws\_default\_vpc resource should delete the default VPC. By default, destroy only removes it from Terraform state. | `bool` | `true` | no |
 | delete\_default\_vpc\_internet\_gateway\_on\_destroy | When enable\_default\_vpc and default\_vpc\_force\_destroy are true, detach and delete the default VPC internet gateway during terraform destroy. | `bool` | `true` | no |
 | dhcp\_options\_domain\_name | Specifies DNS name for DHCP options set (requires enable\_dhcp\_options set to true) | `string` | `"service.consul"` | no |
 | dhcp\_options\_domain\_name\_servers | Specify a list of DNS server addresses for DHCP options set, default to AWS provided (requires enable\_dhcp\_options set to true) | `list(string)` | <pre>[<br>  "AmazonProvidedDNS"<br>]</pre> | no |
@@ -86,3 +86,4 @@
 | vpc\_id | The ID of the VPC. |
 | vpc\_ipv6\_association\_id | The association ID for the IPv6 CIDR block. |
 | vpc\_main\_route\_table\_id | The ID of the main route table associated with this VPC. |
+
