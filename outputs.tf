@@ -91,3 +91,14 @@ output "vpc_bpa_exclusion_id" {
   value       = one(aws_vpc_block_public_access_exclusion.this[*].id)
   description = "ID of the VPC BPA exclusion, if created."
 }
+
+output "gateway_vpc_endpoint_ids" {
+  value       = { for k, v in aws_vpc_endpoint.gateway : k => v.id }
+  description = "Map of Gateway VPC Endpoint IDs."
+}
+
+output "interface_vpc_endpoint_ids" {
+  value       = { for k, v in aws_vpc_endpoint.interface : k => v.id }
+  description = "Map of Interface VPC Endpoint IDs."
+}
+

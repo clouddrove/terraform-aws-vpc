@@ -128,7 +128,7 @@ resource "terraform_data" "default_vpc_internet_gateway_destroy" {
 
   input = {
     internet_gateway_id = data.aws_internet_gateway.default[0].id
-    region              = data.aws_region.current.name
+    region              = data.aws_region.current.region
     vpc_id              = local.vpc_id
   }
 
@@ -489,7 +489,7 @@ resource "aws_flow_log" "vpc_flow_log" {
   log_destination_type     = var.flow_log_destination_type
   log_destination          = var.flow_log_destination_arn == null ? (var.flow_log_destination_type == "s3" ? aws_s3_bucket.flow_log[0].arn : aws_cloudwatch_log_group.flow_log[0].arn) : var.flow_log_destination_arn
   log_format               = var.flow_log_log_format
-  iam_role_arn             = var.create_flow_log_cloudwatch_iam_role ? aws_iam_role.vpc_flow_log_cloudwatch[0].arn : var.flow_log_iam_role_arn
+  iam_role_arn = var.flow_log_destination_type == "cloud-watch-logs" ? (var.create_flow_log_cloudwatch_iam_role ? aws_iam_role.vpc_flow_log_cloudwatch[0].arn : var.flow_log_iam_role_arn) : null
   traffic_type             = var.flow_log_traffic_type
   vpc_id                   = local.vpc_id
   max_aggregation_interval = var.flow_log_max_aggregation_interval
@@ -556,6 +556,7 @@ resource "aws_vpc_endpoint" "gateway" {
   vpc_endpoint_type = "Gateway"
   route_table_ids   = each.value.route_table_ids
   ip_address_type   = each.value.ip_address_type
+  policy = lookup(each.value, "policy", null)
   tags = merge(
     module.labels.tags,
     { "Name" = format("%s-%s-gwep", module.labels.id, each.key) }
@@ -574,6 +575,7 @@ resource "aws_vpc_endpoint" "interface" {
   security_group_ids  = each.value.security_group_ids
   private_dns_enabled = each.value.private_dns_enabled
   ip_address_type     = each.value.ip_address_type
+  policy = lookup(each.value, "policy", null)
   tags = merge(
     module.labels.tags,
     { "Name" = format("%s-%s-ifep", module.labels.id, each.key) }
